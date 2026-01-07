@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Karate Manager - Tamaulipas Edition</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Roboto', sans-serif; }
+        .font-oswald { font-family: 'Oswald', sans-serif; }
+        
+        /* Senshu Triangle */
+        .senshu-triangle {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40%;
+            height: 40%;
+            background-color: #22c55e;
+            clip-path: polygon(0 0, 0% 100%, 100% 100%);
+            z-index: 10;
+        }
+        .senshu-text {
+            position: absolute;
+            bottom: 2px;
+            left: 4px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            z-index: 11;
+            line-height: 1;
+        }
+        
+        /* UI Utilities */
+        .kata-input-box {
+            @apply border-4 border-black rounded-lg p-2 w-full text-center text-2xl font-bold outline-none focus:ring-4 focus:ring-blue-300;
+        }
+        /* Dropdown styling helper */
+        select.kata-input-box {
+            appearance: none; 
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23000000%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.7rem top 50%;
+            background-size: 0.65rem auto;
+        }
+
+        /* KUMITE SOLID BUTTON STYLES */
+        .btn-solid-red {
+            @apply bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition text-sm tracking-wide;
+        }
+        .btn-solid-blue {
+            @apply bg-[#3b82f6] hover:bg-[#2563eb] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition text-sm tracking-wide;
+        }
+        
+        /* Penalties Grid Style */
+        .btn-solid-yellow {
+            @apply bg-[#fbbf24] hover:bg-[#f59e0b] text-gray-900 font-bold py-3 rounded shadow text-center uppercase w-full transition text-xs;
+        }
+        .btn-solid-yellow-active {
+             @apply bg-[#b45309] text-white shadow-inner ring-2 ring-[#78350f];
+        }
+
+        /* Match Controls */
+        .btn-solid-purple {
+            @apply bg-[#a855f7] hover:bg-[#9333ea] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition flex items-center justify-center gap-2 text-sm;
+        }
+        .btn-solid-grey {
+            @apply bg-[#4b5563] hover:bg-[#374151] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition text-sm;
+        }
+        .btn-solid-indigo {
+            @apply bg-[#4f46e5] hover:bg-[#4338ca] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition flex items-center justify-center gap-2 text-sm;
+        }
+        .btn-solid-darkred {
+            @apply bg-[#991b1b] hover:bg-[#7f1d1d] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition flex items-center justify-center gap-2 text-sm;
+        }
+        .btn-solid-blue-dark {
+            @apply bg-[#1d4ed8] hover:bg-[#1e40af] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition text-sm;
+        }
+        .btn-solid-slate {
+            @apply bg-[#334155] hover:bg-[#1e293b] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition text-sm;
+        }
+
+        .control-header {
+            @apply text-black font-bold text-lg mb-3 uppercase border-b-2 border-gray-200 pb-1;
+        }
+
+        /* Hide scrollbar for scoreboard view */
+        .scoreboard-mode body {
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 h-screen overflow-hidden">
+
+<div id="app" class="h-full flex flex-col">
+
+    <!-- Navbar (HIDDEN IN POPUP MODE) -->
+    <nav v-if="!isPopupMode" class="bg-white border-b border-gray-200 px-4 py-2 flex justify-between items-center shadow-sm z-50 h-12 shrink-0">
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-table text-gray-600"></i>
+                <span class="font-bold text-gray-700 text-sm uppercase">Control Panel</span>
+            </div>
+        </div>
+        
+        <div class="flex gap-2 bg-gray-100 rounded p-1">
+            <button @click="setMode('KATA')" :class="{'bg-white shadow text-black': currentMode === 'KATA', 'text-gray-400': currentMode !== 'KATA'}" class="px-3 py-1 rounded text-xs font-bold transition">KATA</button>
+            <button @click="setMode('KUMITE')" :class="{'bg-white shadow text-black': currentMode === 'KUMITE', 'text-gray-400': currentMode !== 'KUMITE'}" class="px-3 py-1 rounded text-xs font-bold transition">KUMITE</button>
+        </div>
+
+        <div class="flex gap-2">
+             <button @click="view = 'OPERATOR'" :class="{'bg-gray-800 text-white': view === 'OPERATOR', 'text-gray-500 hover:bg-gray-200': view !== 'OPERATOR'}" class="px-3 py-1 rounded text-xs font-bold transition">OPERADOR</button>
+             <button @click="openScoreboardWindow" class="bg-red-600 text-white px-3 py-1 rounded text-xs font-bold transition hover:bg-red-700 flex items-center gap-2">
+                <i class="fas fa-external-link-alt"></i> TV VIEW
+             </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 relative overflow-hidden bg-gray-50">
+
+        <!-- ================= KATA SECTION ================= -->
+        <div v-if="currentMode === 'KATA'" class="h-full flex flex-col">
+            
+            <!-- OPERATOR VIEW KATA -->
+            <div v-if="view === 'OPERATOR' && !isPopupMode" class="h-full overflow-y-auto flex items-center justify-center p-4">
+                <div class="bg-white p-6 rounded-2xl shadow-xl max-w-5xl w-full border border-gray-200">
+                    
+                    <!-- Top Category Selector -->
+                    <div class="mb-6 border-b pb-4 border-gray-100">
+                        <div class="flex items-center justify-center gap-4">
+                            <label class="text-gray-600 font-bold uppercase text-sm">Categoría del Evento:</label>
+                            <select v-model="kataState.selectedCategoryRule" @change="updateKataCategoryDisplay" class="border-2 border-gray-300 rounded-md p-2 font-bold text-gray-800 w-96 outline-none focus:border-black">
+                                <option v-for="(cat, idx) in kataCategoryOptions" :key="idx" :value="cat">
+                                    {{ cat.label }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Inputs Row -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div>
+                            <label class="block text-lg font-bold text-black mb-1 text-center">Competidor</label>
+                            <input v-model="kataState.competitorName" type="text" class="kata-input-box text-lg border-4 border-black rounded-lg p-2 w-full text-center text-2xl font-bold outline-none focus:ring-4 focus:ring-blue-300">
+                        </div>
+                         <div>
+                            <label class="block text-lg font-bold text-black mb-1 text-center">Municipio</label>
+                            <select v-model="kataState.municipioObj" @change="updateKataMunicipality" class="kata-input-box text-lg bg-white border-4 border-black rounded-lg p-2 w-full text-center text-2xl font-bold outline-none focus:ring-4 focus:ring-blue-300">
+                                <option v-for="m in municipios" :value="m">{{ m.name }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-lg font-bold text-black mb-1 text-center">Kata</label>
+                            <select v-model="kataState.kataName" class="kata-input-box text-lg bg-white border-4 border-black rounded-lg p-2 w-full text-center text-2xl font-bold outline-none focus:ring-4 focus:ring-blue-300">
+                                <option v-for="k in officialKatas" :value="k">{{ k }}</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Control Central -->
+                    <div class="flex justify-center gap-4 mb-8 border-b pb-6 border-gray-200">
+                        <button @click="toggleKataTimer" :class="kataState.timerRunning ? 'bg-red-100 text-red-700 border-red-500' : 'bg-blue-50 text-blue-700 border-blue-500'" class="border-2 font-bold text-lg px-6 py-2 rounded-lg transition transform active:scale-95 flex items-center gap-2">
+                            <i class="fas fa-stopwatch"></i>
+                            {{ kataState.timerRunning ? 'DETENER TIEMPO' : 'INICIAR TIEMPO (30s)' }}
+                        </button>
+                        <button @click="openScoreboardWindow" class="bg-gray-800 text-white font-bold text-lg px-8 py-2 rounded-lg hover:bg-gray-700 transition transform active:scale-95 flex items-center gap-2">
+                            <i class="fas fa-tv"></i> MARCADOR EXTERNO (TV)
+                        </button>
+                    </div>
+
+                    <!-- Judges Scores -->
+                    <div class="flex justify-center gap-4 mb-8">
+                        <div v-for="(score, index) in kataState.scores.slice(0,5)" :key="index" class="flex flex-col items-center">
+                            <label class="text-xl font-bold mb-1">J{{index+1}}</label>
+                            <input type="number" step="0.1" min="5.0" max="10.0" v-model.number="kataState.scores[index]" 
+                                   class="w-20 h-16 border-4 border-black rounded-lg text-center text-3xl font-bold outline-none focus:border-blue-500 transition bg-gray-50 focus:bg-white">
+                        </div>
+                    </div>
+
+                    <!-- Bottom Controls & Total -->
+                    <div class="grid grid-cols-2 gap-12 items-end">
+                        <div class="flex justify-end gap-4">
+                             <button @click="showKataScore" class="border-4 border-green-600 bg-green-50s text-green-700 font-bold text-xl px-6 py-3 rounded-lg hover:bg-green-100 transition shadow-md">
+                                MOSTRAR CALIFICACIÓN
+                            </button>
+                            <button @click="resetKata" class="border-4 border-gray-400 text-gray-600 font-bold text-xl px-6 py-3 rounded-lg hover:bg-gray-100 transition">
+                                <i class="fas fa-undo"></i> RESETEAR
+                            </button>
+                        </div>
+
+                        <div>
+                            <label class="block text-xl font-bold text-black mb-2 text-center">Calificación Total</label>
+                            <div class="border-4 border-black rounded-lg p-4 text-center text-5xl font-bold bg-gray-50">
+                                {{ kataState.total }}
+                            </div>
+                            <button @click="calculateKata" class="w-full mt-2 text-sm text-blue-600 hover:underline font-bold">RECALCULAR</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SCOREBOARD VIEW KATA (SHOWN IN POPUP OR PREVIEW) -->
+            <div v-else class="h-full bg-black relative flex flex-col p-4 text-white">
+                <!-- Header -->
+                <div class="flex justify-between items-start mb-2">
+                    <div class="text-white text-2xl font-oswald uppercase leading-tight">
+                        <div class="text-yellow-400 font-bold">{{ kataState.categoryName }}</div>
+                        <div>{{ kataState.modalityName }}</div>
+                    </div>
+                    <div class="flex flex-col items-center">
+                         <div class="bg-green-600 text-white font-bold text-4xl px-6 py-1 shadow-lg">
+                            {{ globalState.tatami }}
+                        </div>
+                    </div>
+                    <div class="text-white text-4xl font-bold font-oswald">AKT</div>
+                </div>
+                
+                <div class="text-center text-white text-6xl font-bold font-oswald uppercase mb-8 mt-4 tracking-wide">
+                    {{ kataState.kataName }}
+                </div>
+                
+                <div class="flex items-center justify-center w-full gap-4 px-8 mb-8">
+                    <div class="bg-[#DC143C] text-white rounded-2xl w-64 h-64 flex items-center justify-center shadow-xl">
+                        <span class="text-7xl font-bold">{{ kataState.scoreVisible ? kataState.total : '--' }}</span> 
+                    </div>
+                    <div class="flex-1 flex flex-col gap-2 max-w-4xl">
+                        <div class="border-2 border-white rounded-lg bg-black px-8 py-6 flex flex-col justify-center">
+                            <div class="text-white text-5xl font-black uppercase font-oswald mb-2 tracking-wide truncate">{{ kataState.competitorName }}</div>
+                        </div>
+                        <div class="border-2 border-white rounded-lg bg-black px-8 py-3">
+                             <div class="text-white text-3xl font-bold uppercase font-oswald tracking-wider">{{ kataState.countryName }}</div>
+                        </div>
+                    </div>
+                    <div class="bg-white text-black rounded-2xl w-64 h-64 flex items-center justify-center shadow-xl">
+                        <span class="text-7xl font-black uppercase">{{ kataState.countryCode }}</span>
+                    </div>
+                </div>
+                
+                <div class="mt-auto mb-8 text-center h-48 flex items-center justify-center">
+                     <div v-if="kataState.showTimer" class="text-[12rem] leading-none font-bold text-yellow-400 font-mono tracking-tighter animate-pulse">
+                        00:{{ kataState.timer.toString().padStart(2, '0') }}
+                     </div>
+                     <div v-else-if="kataState.scoreVisible" class="text-[12rem] leading-none font-bold text-white font-mono tracking-tighter">
+                        {{ kataState.total }}
+                     </div>
+                     <div v-else class="text-gray-600 text-4xl font-mono animate-pulse">
+                         ESPERANDO CALIFICACIÓN...
+                     </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ================= KUMITE SECTION ================= -->
+        <div v-if="currentMode === 'KUMITE'" class="h-full flex flex-col">
+            <!-- OPERATOR VIEW KUMITE -->
+            <div v-if="view === 'OPERATOR' && !isPopupMode" class="h-full overflow-y-auto bg-white p-2">
+                <div class="bg-gray-200 rounded-t-lg p-2 flex justify-between items-center border border-gray-300 mb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-black text-white text-xs px-2 py-1 rounded font-bold uppercase">Categoría</span>
+                        <select v-model="selectedTimeRule" @change="applyTimeRule" class="bg-white border border-gray-300 text-gray-700 text-sm rounded-md p-1 font-bold outline-none focus:ring-2 focus:ring-blue-500 w-64">
+                            <option v-for="(rule, idx) in timeRules" :key="idx" :value="rule">
+                                {{ rule.label }}
+                            </option>
+                        </select>
+                    </div>
+                    <button @click="openScoreboardWindow" class="bg-blue-600 hover:bg-blue-700 text-white font-black uppercase px-8 py-2 rounded text-sm tracking-wider shadow-lg transition flex items-center gap-2">
+                        <i class="fas fa-tv"></i> TOGGLE SCOREBOARD
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-12 gap-8 max-w-[90rem] mx-auto h-full pb-10 px-4">
+                    
+                    <!-- LEFT COLUMN: AKA CONTROL -->
+                    <div class="col-span-3 flex flex-col gap-6">
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-3 shadow-sm">
+                            <div class="text-red-600 font-bold text-lg mb-1">AKA</div>
+                            <input v-model="kumiteState.akaName" class="bg-white border border-red-200 text-gray-900 font-bold text-lg w-full rounded p-1 mb-2" placeholder="Nombre">
+                            <select v-model="kumiteState.akaMunicipio" @change="updateKumiteMunicipality('aka')" class="w-full text-sm bg-white border border-red-200 rounded p-1 mb-2 text-gray-700 font-bold">
+                                <option :value="null">Seleccionar Municipio</option>
+                                <option v-for="m in municipios" :value="m">{{ m.name }}</option>
+                            </select>
+                            <div class="bg-white rounded py-2 text-center shadow-sm border border-red-100">
+                                <span class="text-5xl font-bold text-gray-800">{{ kumiteState.akaScore }}</span>
+                            </div>
+                        </div>
+                         <button @click="toggleSenshu('aka')" :class="kumiteState.senshu === 'aka' ? 'ring-4 ring-purple-300' : ''" class="btn control-btn btn-solid-purple bg-[#018a2f] hover:bg-[#40e677] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition flex items-center justify-center gap-2 text-sm">
+                                <i class="fas fa-star text-xs"></i> Set Senshu AKA
+                            </button>
+                        <div>
+                            <h3 class=" text-black font-bold text-lg mb-3 uppercase border-b-2 border-gray-200 pb-1">AKA Score</h3>
+                            <button @click="addPoints('aka', 1)" class="btn-solid-red bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition text-sm tracking-wide">YUKO +1</button>
+                            <button @click="addPoints('aka', 2)" class="btn-solid-red bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition text-sm tracking-wide">WAZA-ARI +2</button>
+                            <button @click="addPoints('aka', 3)" class="btn-solid-red bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition text-sm tracking-wide">IPPON +3</button>
+                        </div>
+
+                        <div>
+                            <h3 class="text-black font-bold text-lg mb-3 uppercase border-b-2 border-gray-200 pb-1">AKA Penalties</h3>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button v-for="p in ['CHUI 1', 'CHUI 2', 'CHUI 3', 'HANSOKU CHUI', 'HANSOKU']" :key="p" 
+                                    @click="togglePenalty('aka', p)" 
+                                    :class="kumiteState.akaPenalties.includes(p) ? 'btn-solid-yellow-active bg-[#b45309] text-white shadow-inner ring-2 ring-[#78350f]' : 'bg-[#fbbf24]'"
+                                    class="btn-solid-yellow bg-[#fbbf24] hover:bg-[#f59e0b] text-gray-900 font-bold py-3 rounded shadow text-center uppercase w-full transition text-xs">
+                                    {{ p }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MIDDLE COLUMN: CENTER CONTROL -->
+                    <div class="col-span-6 flex flex-col gap-6 px-4">
+                        <div class="bg-[#f0fdf4] border border-green-100 rounded-lg p-4 shadow-sm text-center mb-4">
+                            <h3 class="text-gray-600 font-semibold text-lg mb-2">Match Time</h3>
+                            <div class="text-7xl font-bold text-gray-800 font-mono mb-4 tracking-tighter">{{ formatTime(kumiteState.timer) }}</div>
+                            <div class="flex justify-center gap-3">
+                                <button @click="startTimer" class="bg-[#16a34a] hover:bg-[#15803d] text-white font-bold py-2 px-6 rounded shadow-md flex items-center gap-2"><i class="fas fa-play text-xs"></i> Start</button>
+                                <button @click="stopTimer" class="bg-[#ef4444] hover:bg-[#b91c1c] text-white font-bold py-2 px-6 rounded shadow-md flex items-center gap-2"><i class="fas fa-stop text-xs"></i> Stop</button>
+                                <button @click="resetTimer" class="bg-[#6b7280] hover:bg-[#4b5563] text-white font-bold py-2 px-6 rounded shadow-md flex items-center gap-2"><i class="fas fa-redo text-xs"></i> Reset</button>
+                            </div>
+                        </div>
+                        
+                         <div>
+                            <h3 class="text-black font-bold text-lg mb-3 uppercase border-b-2 border-gray-200 pb-1 text-center">Match Controls</h3>
+                            <!--button @click="toggleSenshu('aka')" :class="kumiteState.senshu === 'aka' ? 'ring-4 ring-purple-300' : ''" class="btn control-btn btn-solid-purple bg-[#a855f7] hover:bg-[#9333ea] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition flex items-center justify-center gap-2 text-sm">
+                                <i class="fas fa-star text-xs"></i> Set Senshu AKA
+                            </button!-->
+                            <!--button @click="toggleSenshu('ao')" :class="kumiteState.senshu === 'ao' ? 'ring-4 ring-purple-300' : ''" class="btn-solid-purple bg-[#a855f7] hover:bg-[#9333ea] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition flex items-center justify-center gap-2 text-sm">
+                                <i class="fas fa-star text-xs"></i> Set Senshu AO
+                            </button!-->
+                            <button @click="kumiteState.senshu = null" class="btn-solid-grey bg-[#4b5563] hover:bg-[#374151] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition text-sm">
+                                Remove Senshu
+                            </button>
+                            <div class="h-2"></div>
+                            <button class="btn-solid-indigo bg-[#4f46e5] hover:bg-[#4338ca] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition flex items-center justify-center gap-2 text-sm">
+                                <i class="fas fa-trophy text-xs"></i> Hantei (Decision)
+                            </button>
+                            <div class="h-2"></div>
+                            <button class="btn-solid-darkred bg-[#991b1b] hover:bg-[#7f1d1d] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition flex items-center justify-center gap-2 text-sm">
+                                <i class="fas fa-exclamation-triangle text-xs"></i> SHIKKAKU AKA
+                            </button>
+                            <button class="btn-solid-darkred bg-[#991b1b] hover:bg-[#7f1d1d] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition flex items-center justify-center gap-2 text-sm">
+                                <i class="fas fa-exclamation-triangle text-xs"></i> SHIKKAKU AO
+                            </button>
+                            <div class="h-4"></div>
+                            <button class="btn-solid-blue-dark bg-[#1d4ed8] hover:bg-[#1e40af] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition text-sm">
+                                End Bout
+                            </button>
+                            <button @click="resetMatch" class="btn-solid-slate bg-[#334155] hover:bg-[#1e293b] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition text-sm">
+                                Reset Bout
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN: AO CONTROL -->
+                    <div class="col-span-3 flex flex-col gap-6">
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 shadow-sm">
+                            <div class="text-blue-600 font-bold text-lg mb-1">AO</div>
+                            <input v-model="kumiteState.aoName" class="bg-white border border-blue-200 text-gray-900 font-bold text-lg w-full rounded p-1 mb-2" placeholder="Nombre">
+                            <select v-model="kumiteState.aoMunicipio" @change="updateKumiteMunicipality('ao')" class="w-full text-sm bg-white border border-blue-200 rounded p-1 mb-2 text-gray-700 font-bold">
+                                <option :value="null">Seleccionar Municipio</option>
+                                <option v-for="m in municipios" :value="m">{{ m.name }}</option>
+                            </select>
+                            <div class="bg-white rounded py-2 text-center shadow-sm border border-blue-100">
+                                <span class="text-5xl font-bold text-gray-800">{{ kumiteState.aoScore }}</span>
+                            </div>
+                        </div>
+                            <button @click="toggleSenshu('ao')" :class="kumiteState.senshu === 'ao' ? 'ring-4 ring-purple-300' : ''" class="btn-solid-purple bg-[#018a2f] hover:bg-[#40e677] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition flex items-center justify-center gap-2 text-sm">
+                                <i class="fas fa-star text-xs"></i> Set Senshu AO
+                            </button>
+                        <div>
+                            <h3 class="text-black font-bold text-lg mb-3 uppercase border-b-2 border-gray-200 pb-1">AO Score</h3>
+                            <button @click="addPoints('ao', 1)" class="bg-[#3b82f6] hover:bg-[#2563eb] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition text-sm tracking-wide">YUKO +1</button>
+                            <button @click="addPoints('ao', 2)" class="bg-[#3b82f6] hover:bg-[#2563eb] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition text-sm tracking-wide">WAZA-ARI +2</button>
+                            <button @click="addPoints('ao', 3)" class="bg-[#3b82f6] hover:bg-[#2563eb] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition text-sm tracking-wide">IPPON +3</button>
+                        </div>
+
+                        <div>
+                            <h3 class="text-black font-bold text-lg mb-3 uppercase border-b-2 border-gray-200 pb-1">AO Penalties</h3>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button v-for="p in ['CHUI 1', 'CHUI 2', 'CHUI 3', 'HANSOKU CHUI', 'HANSOKU']" :key="p" 
+                                    @click="togglePenalty('ao', p)" 
+                                    :class="kumiteState.aoPenalties.includes(p) ? 'btn-solid-yellow-active bg-[#b45309] text-white shadow-inner ring-2 ring-[#78350f]' : 'bg-[#fbbf24]'"
+                                    class="btn-solid-yellow bg-[#fbbf24] hover:bg-[#f59e0b] text-gray-900 font-bold py-3 rounded shadow text-center uppercase w-full transition text-xs">
+                                    {{ p }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SCOREBOARD VIEW KUMITE -->
+             <div v-else class="h-full bg-black relative flex flex-col p-6 text-white">
+                <div class="flex justify-between items-start mb-8">
+                    <div class="text-white text-2xl font-oswald uppercase leading-snug">
+                        <div class="text-yellow-400 font-bold text-3xl">{{ globalState.category }}</div>
+                        <div class="text-gray-400 text-lg">{{ globalState.eventName }}</div>
+                    </div>
+                    <div class="flex flex-col items-center">
+                         <div class="bg-green-600 text-white font-bold text-2xl px-8 py-2 text-center">
+                            <div class="text-sm uppercase leading-none mb-1">TATAMI</div>
+                            <div class="text-4xl leading-none">{{ globalState.tatami }}</div>
+                        </div>
+                    </div>
+                    <div class="text-white text-4xl font-bold font-oswald">AKT</div>
+                </div>
+                <div class="flex flex-col gap-6 w-full max-w-7xl mx-auto">
+                    <!-- AKA ROW -->
+                    <div class="flex h-48">
+                        <div class="w-48 bg-white text-black flex items-center justify-center rounded-l-xl mr-1">
+                            <span class="text-6xl font-oswald font-bold uppercase">{{ kumiteState.akaCode }}</span>
+                        </div>
+                        <div class="flex-1 flex flex-col justify-between bg-black mr-1">
+                             <div class="bg-[#D32F2F] h-3/4 w-full flex items-center px-8 rounded-r-xl">
+                                 <span class="text-white text-6xl font-oswald font-bold uppercase truncate">{{ kumiteState.akaName }}</span>
+                             </div>
+                             <div class="h-1/4 flex items-center gap-4 px-2 mt-2">
+                                 <span class="text-white text-sm font-bold uppercase">PENALTY</span>
+                                 <div class="flex gap-2">
+                                     <div v-for="(p, i) in 5" :key="i" class="w-8 h-8 flex items-center justify-center text-xs font-bold rounded" :class="kumiteState.akaPenalties.length > i ? 'bg-[#D32F2F] text-white' : 'bg-black text-gray-600 border border-gray-700'">{{ ['C1','C2','C3','HC','H'][i] }}</div>
+                                 </div>
+                             </div>
+                        </div>
+                        <div class="w-48 bg-[#D32F2F] text-white flex items-center justify-center rounded-xl relative ml-2 overflow-hidden">
+                            <span class="text-8xl font-bold">{{ kumiteState.akaScore }}</span>
+                            <div v-if="kumiteState.senshu === 'aka'" class="senshu-triangle"><span class="senshu-text">S</span></div>
+                        </div>
+                    </div>
+                    <!-- AO ROW -->
+                    <div class="flex h-48">
+                        <div class="w-48 bg-white text-black flex items-center justify-center rounded-l-xl mr-1">
+                            <span class="text-6xl font-oswald font-bold uppercase">{{ kumiteState.aoCode }}</span>
+                        </div>
+                        <div class="flex-1 flex flex-col justify-between bg-black mr-1">
+                             <div class="bg-[#1976D2] h-3/4 w-full flex items-center px-8 rounded-r-xl">
+                                 <span class="text-white text-6xl font-oswald font-bold uppercase truncate">{{ kumiteState.aoName }}</span>
+                             </div>
+                             <div class="h-1/4 flex items-center gap-4 px-2 mt-2">
+                                 <span class="text-white text-sm font-bold uppercase">PENALTY</span>
+                                 <div class="flex gap-2">
+                                      <div v-for="(p, i) in 5" :key="i" class="w-8 h-8 flex items-center justify-center text-xs font-bold rounded" :class="kumiteState.aoPenalties.length > i ? 'bg-[#1976D2] text-white' : 'bg-black text-gray-600 border border-gray-700'">{{ ['C1','C2','C3','HC','H'][i] }}</div>
+                                 </div>
+                             </div>
+                        </div>
+                        <div class="w-48 bg-[#1976D2] text-white flex items-center justify-center rounded-xl relative ml-2 overflow-hidden">
+                            <span class="text-8xl font-bold">{{ kumiteState.aoScore }}</span>
+                            <div v-if="kumiteState.senshu === 'ao'" class="senshu-triangle"><span class="senshu-text">S</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-auto mb-4 text-center">
+                     <div class="text-[10rem] leading-none font-bold text-[#FFEB3B] font-mono tracking-tighter drop-shadow-md">
+                        {{ formatTime(kumiteState.timer) }}
+                     </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    const { createApp, reactive, ref, onMounted, watch } = Vue;
+
+    createApp({
+        setup() {
+            const view = ref('OPERATOR'); 
+            const currentMode = ref('KUMITE'); 
+            const isPopupMode = ref(false);
+            
+            // Multi-window sync channel
+            const channel = new BroadcastChannel('karate_manager_sync');
+
+            // --- DATA LISTS ---
+            const municipios = [
+                {name: "Abasolo", code: "ABA"}, {name: "Aldama", code: "ALD"}, {name: "Altamira", code: "ALT"},
+                {name: "Antiguo Morelos", code: "ANT"}, {name: "Burgos", code: "BUR"}, {name: "Bustamante", code: "BUS"},
+                {name: "Camargo", code: "CAM"}, {name: "Casas", code: "CAS"}, {name: "Ciudad Madero", code: "MAD"},
+                {name: "Cruillas", code: "CRU"}, {name: "El Mante", code: "MAN"}, {name: "Gómez Farías", code: "GOM"},
+                {name: "González", code: "GON"}, {name: "Güémez", code: "GUE"}, {name: "Guerrero", code: "GRO"},
+                {name: "Gustavo Díaz Ordaz", code: "GDO"}, {name: "Hidalgo", code: "HID"}, {name: "Jaumave", code: "JAU"},
+                {name: "Jiménez", code: "JIM"}, {name: "Llera", code: "LLE"}, {name: "Mainero", code: "MAI"},
+                {name: "Matamoros", code: "MAT"}, {name: "Méndez", code: "MEN"}, {name: "Mier", code: "MIE"},
+                {name: "Miguel Alemán", code: "MIG"}, {name: "Miquihuana", code: "MIQ"}, {name: "Nuevo Laredo", code: "NLD"},
+                {name: "Nuevo Morelos", code: "NMO"}, {name: "Ocampo", code: "OCA"}, {name: "Padilla", code: "PAD"},
+                {name: "Palmillas", code: "PAL"}, {name: "Reynosa", code: "REY"}, {name: "Río Bravo", code: "RIO"},
+                {name: "San Carlos", code: "SCA"}, {name: "San Fernando", code: "SFE"}, {name: "San Nicolás", code: "SNI"},
+                {name: "Soto la Marina", code: "SLM"}, {name: "Tampico", code: "TAM"}, {name: "Tula", code: "TUL"},
+                {name: "Valle Hermoso", code: "VAL"}, {name: "Victoria", code: "VIC"}, {name: "Villagrán", code: "VIL"},
+                {name: "Xicoténcatl", code: "XIC"}
+            ];
+
+            const officialKatas = [
+                "1 - Anan", "2 - Anan Dai", "3 - Ananko", "4 - Aoyagi", "5 - Bassai", "6 - Bassai Dai", "7 - Bassai Sho",
+                "8 - Chatanyara Kusanku", "9 - Chibana No Kushanku", "10 - Chinte", "11 - Chinto", "12 - Enpi", "13 - Fukyugata Ichi",
+                "14 - Fukyugata Ni", "15 - Gankaku", "16 - Garyu", "17 - Gekisai 1", "18 - Gekisai 2", "19 - Gojushiho",
+                "20 - Gojushiho Dai", "21 - Gojushiho Sho", "22 - Hakusho", "23 - Hangetsu", "24 - Haufa", "25 - Heian Shodan",
+                "26 - Heian Nidan", "27 - Heian Sandan", "28 - Heian Yondan", "29 - Heian Godan", "30 - Heiku", "31 - Ishimine Bassai",
+                "32 - Itosu Rohai Shodan", "33 - Itosu Rohai Nidan", "34 - Itosu Rohai Sandan", "35 - Jiin", "36 - Jion", "37 - Jitte",
+                "38 - Juroku", "39 - Kanchin", "40 - Kanku Dai", "41 - Kanku Sho", "42 - Kanshu", "43 - Kishimono No Kushanku",
+                "44 - Kousoukun", "45 - Kousoukun Dai", "46 - Kousoukun Sho", "47 - Kururunfa", "48 - Kusanku", "49 - Kyan No Chinto",
+                "50 - Kyan No Wanshu", "51 - Matsukaze", "52 - Matsumura Bassai", "53 - Matsumura Rohai", "54 - Meikyo", "55 - Myojo",
+                "56 - Naifanchin Shodan", "57 - Naifanchin Nidan", "58 - Naifanchin Sandan", "59 - Naihanchi", "60 - Nijushiho",
+                "61 - Nipaipo", "62 - Niseishi", "63 - Ohan", "64 - Ohan Dai", "65 - Oyadomari No Passai", "66 - Pachu", "67 - Paiku",
+                "68 - Papuren", "69 - Passai", "70 - Pinan Shodan", "71 - Pinan Nidan", "72 - Pinan Sandan", "73 - Pinan Yondan",
+                "74 - Pinan Godan", "75 - Rohai", "76 - Saifa", "77 - Sanchin", "78 - Sansai", "79 - Sanseiru", "80 - Sanseru",
+                "81 - Seichin", "82 - Seienchin", "83 - Seipai", "84 - Seiryu", "85 - Seishan", "86 - Seisan", "87 - Shiho Kousoukun",
+                "88 - Shinpa", "89 - Shinsei", "90 - Shisochin", "91 - Sochin", "92 - Suparinpei", "93 - Tekki Shodan", "94 - Tekki Nidan",
+                "95 - Tekki Sandan", "96 - Tensho", "97 - Tomari Bassai", "98 - Unshu", "99 - Unsu", "100 - Useishi", "101 - Wankan", "102 - Wanshu"
+            ];
+
+            const ages = ['U14', 'CADETE', 'JUNIOR', 'U21', 'SENIOR'];
+            const genders = ['VARONIL', 'FEMENIL'];
+            const types = ['INDIVIDUAL', 'EQUIPO'];
+            
+            const kataCategoryOptions = [];
+            ages.forEach(age => {
+                genders.forEach(gender => {
+                    types.forEach(type => {
+                        kataCategoryOptions.push({
+                            label: `${age} ${gender} - ${type}`,
+                            line1: `${age} ${gender == 'VARONIL' ? 'MALE' : 'FEMALE'}`,
+                            line2: `${type == 'INDIVIDUAL' ? 'INDIVIDUAL KATA' : 'TEAM KATA'}`
+                        });
+                    });
+                });
+            });
+
+            const timeRules = [
+                { label: 'Senior Varonil (3:00)', seconds: 180 },
+                { label: 'Senior Femenil (3:00)', seconds: 180 },
+                { label: 'Sub-21 Varonil (3:00)', seconds: 180 },
+                { label: 'Sub-21 Femenil (3:00)', seconds: 180 },
+                { label: 'Junior Varonil (2:00)', seconds: 120 },
+                { label: 'Junior Femenil (2:00)', seconds: 120 },
+                { label: 'Cadete Varonil (2:00)', seconds: 120 },
+                { label: 'Cadete Femenil (2:00)', seconds: 120 },
+                { label: 'U14 Varonil (1:30)', seconds: 90 },
+                { label: 'U14 Femenil (1:30)', seconds: 90 }
+            ];
+
+            const selectedTimeRule = ref(timeRules[0]);
+
+            // Global settings
+            const globalState = reactive({
+                eventName: 'EVENTO TAMAULIPAS 2025',
+                category: 'Senior Varonil', 
+                tatami: '1'
+            });
+
+            // --- KATA STATE ---
+            const kataState = reactive({
+                categoryName: 'SENIOR MALE',
+                modalityName: 'INDIVIDUAL KATA',
+                selectedCategoryRule: kataCategoryOptions.find(c => c.label === 'SENIOR VARONIL - INDIVIDUAL'),
+                competitorName: 'Competidor 1',
+                countryCode: 'TAM',
+                countryName: 'TAMPICO',
+                municipioObj: municipios.find(m => m.name === 'Tampico'),
+                kataName: '1 - Anan',
+                scores: [0,0,0,0,0],
+                total: "0.00",
+                scoreVisible: false,
+                timer: 30,
+                showTimer: false,
+                timerRunning: false
+            });
+
+            let kataInterval = null;
+
+            // --- KUMITE STATE ---
+            const kumiteState = reactive({
+                akaName: 'Competidor Rojo',
+                akaCode: 'TAM',
+                akaMunicipio: municipios.find(m => m.name === 'Tampico'),
+                aoName: 'Competidor Azul',
+                aoCode: 'REY',
+                aoMunicipio: municipios.find(m => m.name === 'Reynosa'),
+                akaScore: 0,
+                aoScore: 0,
+                akaPenalties: [],
+                aoPenalties: [],
+                timer: 180,
+                senshu: null
+            });
+
+            let timerInterval = ref(null);
+
+            // --- INIT LOGIC ---
+            onMounted(() => {
+                const urlParams = new URLSearchParams(window.location.search);
+                // Check if the URL parameter indicates the scoreboard view
+                if (urlParams.get('view') === 'scoreboard') {
+                    isPopupMode.value = true;
+                    view.value = 'SCOREBOARD';
+                    // Apply class to hide scrollbar and ensure full screen experience
+                    document.body.classList.add('scoreboard-mode'); 
+                }
+
+                // Listen for updates from other windows/tabs via BroadcastChannel
+                channel.onmessage = (event) => {
+                    const data = event.data;
+                    if (data.type === 'UPDATE_STATE') {
+                        // Only update if the received data is different from the current state to prevent loops
+                        if (JSON.stringify(globalState) !== JSON.stringify(data.globalState)) Object.assign(globalState, data.globalState);
+                        if (JSON.stringify(kataState) !== JSON.stringify(data.kataState)) Object.assign(kataState, data.kataState);
+                        if (JSON.stringify(kumiteState) !== JSON.stringify(data.kumiteState)) Object.assign(kumiteState, data.kumiteState);
+                        if (currentMode.value !== data.currentMode) currentMode.value = data.currentMode;
+                    }
+                };
+            });
+
+            // Watch for changes in state and broadcast to other windows
+            watch([globalState, kataState, kumiteState, currentMode], () => {
+                channel.postMessage({
+                    type: 'UPDATE_STATE',
+                    globalState: JSON.parse(JSON.stringify(globalState)),
+                    kataState: JSON.parse(JSON.stringify(kataState)),
+                    kumiteState: JSON.parse(JSON.stringify(kumiteState)),
+                    currentMode: currentMode.value
+                });
+            }, { deep: true });
+
+
+            const openScoreboardWindow = () => {
+                // Open a new window with the same URL plus the '?view=scoreboard' parameter
+                // window.location.href.split('?')[0] ensures we get the base path, clearing old parameters
+                const currentBaseUrl = window.location.href.split('?')[0];
+                window.open(currentBaseUrl + '?view=scoreboard', 'ScoreboardWindow', 'width=1280,height=720,menubar=no,toolbar=no,location=no');
+            };
+
+            // --- KATA FUNCTIONS ---
+            const updateKataCategoryDisplay = () => {
+                if(kataState.selectedCategoryRule) {
+                    kataState.categoryName = kataState.selectedCategoryRule.line1;
+                    kataState.modalityName = kataState.selectedCategoryRule.line2;
+                }
+            }
+
+            const updateKataMunicipality = () => {
+                if(kataState.municipioObj) {
+                    kataState.countryName = kataState.municipioObj.name.toUpperCase();
+                    kataState.countryCode = kataState.municipioObj.code;
+                }
+            };
+
+            const calculateKata = () => {
+                // Sort scores, drop the lowest and highest, sum the three remaining
+                const sorted = [...kataState.scores].sort((a, b) => a - b);
+                const validScores = sorted.slice(1, 4); 
+                const sum = validScores.reduce((a, b) => a + b, 0);
+                kataState.total = sum.toFixed(2);
+            };
+
+            const showKataScore = () => {
+                calculateKata();
+                kataState.scoreVisible = true;
+            };
+
+            const resetKata = () => {
+                kataState.scores = [0,0,0,0,0];
+                kataState.total = "0.00";
+                kataState.scoreVisible = false;
+                if(kataInterval) clearInterval(kataInterval);
+                kataState.timerRunning = false;
+                kataState.showTimer = false;
+                kataState.timer = 30;
+            };
+
+            const toggleKataTimer = () => {
+                if (kataState.timerRunning) {
+                    clearInterval(kataInterval);
+                    kataState.timerRunning = false;
+                    kataState.showTimer = false;
+                } else {
+                    kataState.timer = 30;
+                    kataState.showTimer = true;
+                    kataState.timerRunning = true;
+                    kataInterval = setInterval(() => {
+                        if(kataState.timer > 0) kataState.timer--;
+                        else {
+                            clearInterval(kataInterval);
+                            kataState.timerRunning = false;
+                        }
+                    }, 1000);
+                }
+            };
+
+            // --- KUMITE FUNCTIONS ---
+            const updateKumiteMunicipality = (side) => {
+                if (side === 'aka' && kumiteState.akaMunicipio) {
+                    kumiteState.akaCode = kumiteState.akaMunicipio.code;
+                } else if (side === 'ao' && kumiteState.aoMunicipio) {
+                    kumiteState.aoCode = kumiteState.aoMunicipio.code;
+                }
+            };
+
+            const formatTime = (seconds) => {
+                const m = Math.floor(seconds / 60);
+                const s = seconds % 60;
+                return `${m}:${s.toString().padStart(2, '0')}`;
+            };
+
+            const startTimer = () => {
+                if (!timerInterval.value) {
+                    timerInterval.value = setInterval(() => {
+                        if (kumiteState.timer > 0) kumiteState.timer--;
+                        else stopTimer();
+                    }, 1000);
+                }
+            };
+
+            const stopTimer = () => {
+                if (timerInterval.value) {
+                    clearInterval(timerInterval.value);
+                    timerInterval.value = null;
+                }
+            };
+
+            const resetTimer = () => {
+                stopTimer();
+                kumiteState.timer = selectedTimeRule.value.seconds;
+            };
+
+            const applyTimeRule = () => {
+                resetTimer();
+                const cleanLabel = selectedTimeRule.value.label.split('(')[0].trim();
+                globalState.category = cleanLabel.toUpperCase();
+            }
+
+            const resetMatch = () => {
+                resetTimer();
+                kumiteState.akaScore = 0;
+                kumiteState.aoScore = 0;
+                kumiteState.akaPenalties = [];
+                kumiteState.aoPenalties = [];
+                kumiteState.senshu = null;
+            };
+
+            const addPoints = (side, points) => {
+                if (side === 'aka') kumiteState.akaScore += points;
+                else kumiteState.aoScore += points;
+            };
+
+            const togglePenalty = (side, type) => {
+                const target = side === 'aka' ? kumiteState.akaPenalties : kumiteState.aoPenalties;
+                const idx = target.indexOf(type);
+                if (idx > -1) target.splice(idx, 1);
+                else target.push(type);
+            };
+
+            const toggleSenshu = (side) => {
+                if(kumiteState.senshu === side) kumiteState.senshu = null;
+                else kumiteState.senshu = side;
+            }
+
+            const setMode = (mode) => {
+                currentMode.value = mode;
+            }
+
+            return {
+                view,
+                currentMode,
+                isPopupMode,
+                setMode,
+                openScoreboardWindow,
+                municipios,
+                officialKatas,
+                kataCategoryOptions,
+                updateKataCategoryDisplay,
+                timeRules,
+                selectedTimeRule,
+                applyTimeRule,
+                globalState,
+                kataState,
+                updateKataMunicipality,
+                calculateKata,
+                showKataScore,
+                resetKata,
+                toggleKataTimer,
+                kumiteState,
+                updateKumiteMunicipality,
+                formatTime,
+                startTimer,
+                stopTimer,
+                resetTimer,
+                resetMatch,
+                addPoints,
+                togglePenalty,
+                toggleSenshu
+            };
+        }
+    }).mount('#app');
+</script>
+
+</body>
+</html>

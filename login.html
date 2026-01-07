@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Karate Manager - Master Cloud Edition</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style type="text/tailwindcss">
+        body { font-family: 'Roboto', sans-serif; }
+        .font-oswald { font-family: 'Oswald', sans-serif; }
+        
+        /* ESTILOS DE AUTENTICACIÓN */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        
+        /* ESTILOS DEL TORNEO (Heredados del Index Estable) */
+        .senshu-triangle {
+            position: absolute; bottom: 0; left: 0; width: 40%; height: 40%;
+            background-color: #22c55e; clip-path: polygon(0 0, 0% 100%, 100% 100%); z-index: 10;
+        }
+        .senshu-text {
+            position: absolute; bottom: 2px; left: 4px; font-size: 1.2rem; font-weight: bold; color: white; z-index: 11; line-height: 1;
+        }
+        .kata-input-box { @apply border-4 border-black rounded-lg p-2 w-full text-center text-2xl font-bold outline-none focus:ring-4 focus:ring-blue-300; }
+        
+        /* Botones y UI */
+        .btn-solid-red { @apply bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition text-sm tracking-wide; }
+        .btn-solid-blue { @apply bg-[#3b82f6] hover:bg-[#2563eb] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition text-sm tracking-wide; }
+        .btn-solid-yellow { @apply bg-[#fbbf24] hover:bg-[#f59e0b] text-gray-900 font-bold py-3 rounded shadow text-center uppercase w-full transition text-xs; }
+        .btn-solid-darkred { @apply bg-[#991b1b] hover:bg-[#7f1d1d] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition flex items-center justify-center gap-2 text-sm; }
+        .btn-hansoku { @apply bg-black hover:bg-gray-800 text-white font-bold py-2 rounded shadow text-center uppercase w-full mt-2 transition text-xs border border-gray-600; }
+        
+        .control-header { @apply text-black font-bold text-lg mb-3 uppercase border-b-2 border-gray-200 pb-1; }
+        
+        /* Scrollbars y Utilidades */
+        .dropdown-scroll::-webkit-scrollbar { width: 8px; }
+        .dropdown-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .dropdown-scroll::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+        .input-disabled { @apply bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200; }
+        
+        /* Brackets Visuals */
+        .bracket-scroll-area { display: flex; padding: 40px; gap: 0; }
+        .round-column { display: flex; flex-direction: column; justify-content: space-around; min-width: 300px; position: relative; }
+        .match-pair { display: flex; flex-direction: column; justify-content: center; position: relative; flex-grow: 1; padding: 10px 40px 10px 0; }
+        .match-card { background: white; border: 1px solid #cbd5e1; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); width: 100%; position: relative; z-index: 2; cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; }
+        .match-card:hover { transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-color: #94a3b8; }
+        .connector-vertical { position: absolute; right: 20px; top: 25%; bottom: 25%; width: 2px; background-color: #94a3b8; border-top-right-radius: 4px; border-bottom-right-radius: 4px; }
+        .match-pair::before { content: ''; position: absolute; right: 20px; top: 25%; width: 20px; height: 2px; background-color: #94a3b8; }
+        .match-pair::after { content: ''; position: absolute; right: 20px; bottom: 25%; width: 20px; height: 2px; background-color: #94a3b8; }
+        .connector-next { position: absolute; right: 0; top: 50%; width: 20px; height: 2px; background-color: #94a3b8; transform: translateY(-50%); }
+        .slot-aka { border-left: 6px solid #ef4444; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; }
+        .slot-ao { border-left: 6px solid #3b82f6; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center; }
+        .slot-winner { background-color: #f0fdf4; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 h-screen overflow-hidden">
+
+<div id="app" class="h-full flex flex-col font-roboto relative">
+
+    <div v-if="!isAuthorized && !isPopupMode" class="absolute inset-0 z-[999] bg-gray-900 flex items-center justify-center p-4 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col animate-fade-in">
+            
+            <div class="bg-blue-900 p-8 text-center relative overflow-hidden">
+                <div class="absolute inset-0 bg-black opacity-20"></div>
+                <div class="relative z-10">
+                    <h1 class="text-4xl font-black text-white font-oswald uppercase tracking-widest">KARATE<span class="text-yellow-400">MANAGER</span></h1>
+                    <p class="text-blue-200 text-xs mt-2 font-bold uppercase tracking-wide">Sistema Integral Cloud</p>
+                </div>
+            </div>
+
+            <div class="p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center border-b pb-4">
+                    {{ authMode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta' }}
+                </h2>
+
+                <div v-if="authMessage" :class="authMessageType === 'error' ? 'bg-red-100 text-red-700 border-red-400' : 'bg-green-100 text-green-700 border-green-400'" class="mb-4 p-3 rounded border text-xs font-bold text-center">
+                    <i :class="authMessageType === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-check-circle'"></i> {{ authMessage }}
+                </div>
+
+                <div class="space-y-4">
+                    <div v-if="authMode === 'register'" class="space-y-4 animate-fade-in">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nombre Completo</label>
+                            <input v-model="authForm.name" type="text" class="w-full border-2 border-gray-200 rounded-lg p-3 font-bold outline-none focus:border-blue-500 transition" placeholder="Tu Nombre">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Torneo</label>
+                            <input v-model="authForm.tournament" type="text" class="w-full border-2 border-gray-200 rounded-lg p-3 font-bold outline-none focus:border-blue-500 transition" placeholder="Nombre del Torneo">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Rol</label>
+                            <select v-model="authForm.role" class="w-full border-2 border-gray-200 rounded-lg p-3 font-bold outline-none focus:border-blue-500 bg-white transition cursor-pointer">
+                                <option value="Competidor">Competidor</option>
+                                <option value="juez">Juez</option>
+                                <option value="Directivo">Directivo</option>
+                                <option value="Sensei">Sensei</option>
+                                <option value="Staff">Staff</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Correo Electrónico</label>
+                        <input v-model="authForm.email" type="email" class="w-full border-2 border-gray-200 rounded-lg p-3 font-bold outline-none focus:border-blue-500 transition" placeholder="ejemplo@correo.com">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Contraseña</label>
+                        <input v-model="authForm.password" type="password" class="w-full border-2 border-gray-200 rounded-lg p-3 font-bold outline-none focus:border-blue-500 transition" placeholder="******">
+                    </div>
+
+                    <button @click="handleAuthAction" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg shadow-lg uppercase tracking-wider transition mt-4 flex justify-center items-center gap-2">
+                        <i class="fas fa-sign-in-alt"></i> {{ authMode === 'login' ? 'ENTRAR' : 'REGISTRARME' }}
+                    </button>
+
+                    <div class="relative flex py-2 items-center">
+                        <div class="flex-grow border-t border-gray-300"></div>
+                        <span class="flex-shrink mx-4 text-gray-400 text-xs font-bold uppercase">O continúa con</span>
+                        <div class="flex-grow border-t border-gray-300"></div>
+                    </div>
+
+                    <button @click="loginWithGoogle" class="w-full bg-white border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition">
+                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5"> Google
+                    </button>
+                </div>
+
+                <div class="mt-6 text-center pt-4">
+                    <p class="text-sm text-gray-600 font-medium">
+                        {{ authMode === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?' }}
+                        <button @click="toggleAuthMode" class="text-blue-600 font-black hover:underline ml-1 uppercase transition">
+                            {{ authMode === 'login' ? 'Regístrate aquí' : 'Inicia Sesión' }}
+                        </button>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div v-else class="flex-1 flex flex-col h-full overflow-hidden">
+        
+        <div v-if="!isPopupMode && !isJudgeMode" class="bg-gray-900 text-white px-4 py-1.5 flex justify-between items-center text-xs z-[301] shadow-md">
+            <div class="flex items-center gap-4">
+                <span class="font-bold text-yellow-400 uppercase tracking-wider"><i class="fas fa-user-shield mr-1"></i> {{ userProfile?.role || 'INVITADO' }}</span>
+                <span class="text-gray-300 font-bold">{{ userProfile?.name || userProfile?.email }}</span>
+            </div>
+            <button @click="logout" class="text-red-400 hover:text-white bg-red-900 bg-opacity-20 hover:bg-opacity-100 px-3 py-1 rounded transition font-bold uppercase text-[10px] flex items-center gap-1">
+                <i class="fas fa-power-off"></i> Salir
+            </button>
+        </div>
+
+        <div v-if="firebaseError && !isJudgeMode" class="bg-orange-500 text-white text-xs text-center p-1 font-bold z-[300]">
+            <i class="fas fa-wifi-slash"></i> MODO LOCAL (OFFLINE): Funciones inalámbricas desactivadas.
+        </div>
+        
+        <nav v-if="!isPopupMode && !isJudgeMode" class="bg-white border-b border-gray-200 px-4 py-2 flex justify-between items-center shadow-sm z-50 h-12 shrink-0">
+            <div class="flex items-center gap-4">
+                 <button v-if="currentEvent && !isSenseiMode" @click="exitEvent" class="bg-gray-100 hover:bg-gray-200 text-gray-600 w-8 h-8 rounded-full flex items-center justify-center transition shadow-sm" title="Volver a Lista de Eventos">
+                    <i class="fas fa-home"></i>
+                </button>
+
+                <div class="flex items-center gap-2 text-red-600">
+                    <i class="fas fa-trophy text-lg"></i>
+                    <div class="flex flex-col leading-none">
+                        <span class="font-black text-gray-800 text-xs md:text-md uppercase tracking-tighter truncate max-w-xs md:max-w-md">
+                            {{ currentEvent ? currentEvent.name : 'GESTOR DE EVENTOS' }}
+                        </span>
+                        <span v-if="currentEvent" class="text-[9px] text-gray-400 font-bold uppercase">{{ currentEvent.location }}</span>
+                        <span v-else class="text-[9px] text-gray-400 font-bold uppercase">{{ firebaseError ? 'EDICIÓN LOCAL' : 'CLOUD EDITION' }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div v-if="currentEvent" class="flex gap-1 bg-gray-100 rounded p-1">
+                <button @click="view = 'PRE_REGISTRATION'" :class="{'bg-teal-600 text-white shadow': view === 'PRE_REGISTRATION', 'text-gray-500 hover:bg-teal-50': view !== 'PRE_REGISTRATION'}" class="px-4 py-1 rounded text-xs font-bold transition flex items-center gap-2">
+                    <i class="fas fa-clipboard-list"></i> PRE-REGISTRO
+                </button>
+
+                <div v-if="!isSenseiMode" class="flex gap-1">
+                    <div class="w-px h-4 bg-gray-300 mx-2 self-center"></div>
+                    <button @click="view = 'REGISTRATION'" :class="{'bg-white shadow text-blue-600': view === 'REGISTRATION', 'text-gray-500': view !== 'REGISTRATION'}" class="px-4 py-1 rounded text-xs font-bold transition flex items-center gap-2">
+                        <i class="fas fa-users-cog"></i> ADMIN
+                    </button>
+                    <button @click="view = 'BRACKETS'" :class="{'bg-white shadow text-purple-600': view === 'BRACKETS' || view === 'BRACKET_DETAIL', 'text-gray-500': view !== 'BRACKETS' && view !== 'BRACKET_DETAIL'}" class="px-4 py-1 rounded text-xs font-bold transition flex items-center gap-2">
+                        <i class="fas fa-sitemap"></i> TORNEO
+                    </button>
+                    <div class="w-px h-4 bg-gray-300 mx-2 self-center"></div>
+                    <button @click="changeOperatorMode('KATA')" :class="{'bg-white shadow text-black': (view === 'OPERATOR' || view === 'SCOREBOARD') && currentMode === 'KATA', 'text-gray-500': view !== 'OPERATOR' || currentMode !== 'KATA'}" class="px-4 py-1 rounded text-xs font-bold transition">
+                        KATA OP
+                    </button>
+                    <button @click="changeOperatorMode('KUMITE')" :class="{'bg-white shadow text-black': (view === 'OPERATOR' || view === 'SCOREBOARD') && currentMode !== 'KATA', 'text-gray-500': view !== 'OPERATOR' || currentMode === 'KATA'}" class="px-4 py-1 rounded text-xs font-bold transition">
+                        KUMITE OP
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                 <button v-if="!isSenseiMode" @click="openScoreboardWindow" class="bg-gray-800 hover:bg-black text-white px-3 py-1 rounded text-xs font-bold transition flex items-center gap-2">
+                    <i class="fas fa-external-link-alt"></i> TV
+                 </button>
+            </div>
+        </nav>
+
+        <main class="flex-1 relative overflow-hidden bg-gray-50">
+
+            <div v-if="isLoading" class="absolute inset-0 z-[200] bg-white bg-opacity-90 flex flex-col items-center justify-center">
+                <div class="loader mb-4 border-4 border-t-4 border-gray-200 rounded-full w-12 h-12 animate-spin border-t-blue-500"></div>
+                <p class="text-gray-500 font-bold uppercase text-sm">Cargando datos...</p>
+            </div>
+
+            <div v-if="view === 'EVENTS_LIST'" class="h-full p-8 overflow-y-auto bg-gray-100">
+                <div class="max-w-6xl mx-auto">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <h1 class="text-4xl font-black text-gray-800 uppercase tracking-tight">Mis Eventos</h1>
+                            <p class="text-gray-500">Selecciona o crea un evento para comenzar.</p>
+                        </div>
+                        <button v-if="!isSenseiMode" @click="openEventModal" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg flex items-center gap-2 transition transform hover:scale-105">
+                            <i class="fas fa-plus-circle text-xl"></i> CREAR NUEVO EVENTO
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div v-for="event in sortedEvents" :key="event.id" class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-xl transition group relative">
+                            <div class="absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider shadow-sm bg-green-100 text-green-700">ACTIVO</div>
+                            
+                            <div class="p-6 cursor-pointer" @click="selectEvent(event)">
+                                <div class="text-xs font-bold text-gray-400 uppercase mb-1">{{ getEventDateDisplay(event) }}</div>
+                                <h3 class="text-xl font-black text-gray-800 mb-2 leading-tight group-hover:text-blue-600 transition">{{ event.name }}</h3>
+                                <div class="flex items-center gap-2 text-sm text-gray-600 mb-4"><i class="fas fa-map-marker-alt text-red-500"></i> {{ event.location }}</div>
+                                <p class="text-sm text-gray-400 line-clamp-2">{{ event.description || 'Sin descripción.' }}</p>
+                            </div>
+                            <div class="bg-gray-50 px-4 py-3 border-t border-gray-100 flex justify-between items-center gap-2">
+                                <button v-if="!isSenseiMode" @click.stop="deleteEvent(event.id)" class="text-red-400 hover:text-red-600 text-[10px] font-bold uppercase transition"><i class="fas fa-trash"></i></button>
+                                <div class="flex gap-2 w-full justify-end">
+                                    <button @click="selectEvent(event)" class="text-blue-600 hover:text-blue-800 text-[10px] font-bold uppercase flex items-center gap-1 bg-blue-50 px-2 py-1 rounded border border-blue-200 transition">Entrar <i class="fas fa-arrow-right"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-if="events.length === 0 && !isLoading" class="col-span-full py-20 text-center text-gray-400 bg-white rounded-xl border-2 border-dashed border-gray-300">
+                            <i class="fas fa-cloud text-6xl mb-4 opacity-20"></i>
+                            <p class="text-lg font-medium">No hay eventos activos.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="isEventModalOpen" class="fixed inset-0 z-[120] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+                    <div class="bg-gray-900 p-4 text-white flex justify-between items-center"><h3 class="font-bold text-lg uppercase">Nuevo Evento</h3><button @click="closeEventModal"><i class="fas fa-times"></i></button></div>
+                    <div class="p-6 space-y-4">
+                        <input v-model="eventForm.name" class="w-full border-2 rounded p-2 font-bold" placeholder="Nombre del Evento">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="block text-xs font-bold text-gray-500 mb-1">Inicia</label><input type="datetime-local" v-model="eventForm.startDate" class="w-full border-2 rounded p-2 font-bold text-sm"></div>
+                            <div><label class="block text-xs font-bold text-gray-500 mb-1">Termina</label><input type="datetime-local" v-model="eventForm.endDate" class="w-full border-2 rounded p-2 font-bold text-sm"></div>
+                        </div>
+                        <input v-model="eventForm.location" class="w-full border-2 rounded p-2" placeholder="Sede / Ubicación">
+                        <textarea v-model="eventForm.description" class="w-full border-2 rounded p-2" placeholder="Descripción..."></textarea>
+                        <button @click="createEvent" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded uppercase">Guardar Evento</button>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="view === 'PRE_REGISTRATION'" class="h-full flex flex-col p-6 overflow-y-auto bg-teal-50">
+                 <div class="max-w-4xl mx-auto w-full">
+                    <div class="mb-6 text-center">
+                        <h1 class="text-3xl font-black text-teal-800 uppercase tracking-tight">Portal de Registro</h1>
+                        <div v-if="currentEvent" class="inline-block bg-teal-600 text-white px-4 py-1 rounded-full text-sm font-bold uppercase mt-2 shadow-sm">
+                            <i class="fas fa-cloud-upload-alt mr-2"></i> Inscribiendo a: {{ currentEvent.name }}
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                        <div class="md:col-span-5 bg-white p-6 rounded-xl shadow-lg border-t-4 border-teal-500 h-fit">
+                            <h2 class="text-xl font-bold mb-4 text-gray-800 border-b pb-2 flex items-center gap-2"><i class="fas fa-user-plus text-teal-500"></i> Nuevo Alumno</h2>
+                            <div class="space-y-4">
+                                <div class="bg-gray-100 p-3 rounded-lg border border-gray-200 relative">
+                                    <div v-if="isDojoLocked" class="absolute top-2 right-2 text-red-500" title="Dojo Bloqueado"><i class="fas fa-lock"></i></div>
+                                    <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 tracking-wider">Datos del Dojo</label>
+                                    <div class="grid grid-cols-1 gap-2 mb-2">
+                                         <div class="relative">
+                                            <label class="block text-xs font-bold text-gray-500 mb-1">Nombre Dojo</label>
+                                            <input type="text" v-model="regForm.dojo" @focus="!isDojoLocked && (isDojoDropdownOpen = true)" @blur="closeDojoDropdown" :disabled="isDojoLocked" :class="{'input-disabled': isDojoLocked}" class="w-full border rounded p-2 outline-none text-sm font-bold bg-white" placeholder="Buscar o escribir...">
+                                            <ul v-if="isDojoDropdownOpen && filteredDojos.length > 0 && !isDojoLocked" class="absolute z-50 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-48 overflow-y-auto shadow-lg text-left dropdown-scroll">
+                                                <li v-for="d in filteredDojos" @mousedown="selectDojo(d)" class="p-2 hover:bg-teal-100 cursor-pointer text-xs font-bold text-gray-700 border-b border-gray-100">{{ d }}</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 mb-1">Email Sensei</label>
+                                        <input type="email" v-model="regForm.email" :disabled="isDojoLocked" :class="{'input-disabled': isDojoLocked}" class="w-full border rounded p-2 outline-none text-sm font-bold bg-white disabled:bg-gray-200" placeholder="correo@ejemplo.com">
+                                    </div>
+                                </div>
+                                <div><label class="block text-xs font-bold text-gray-500 mb-1">Nombre Alumno</label><input v-model="regForm.name" class="w-full border-2 border-teal-100 rounded p-2 outline-none focus:ring-2 focus:ring-teal-200 font-bold" placeholder="Ej. Juan Pérez"></div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div><label class="block text-xs font-bold text-gray-500 mb-1">Género</label><select v-model="regForm.gender" class="w-full border rounded p-2 outline-none text-sm"><option value="M">Masculino</option><option value="F">Femenino</option></select></div>
+                                    <div><label class="block text-xs font-bold text-gray-500 mb-1">Edad</label><input type="number" v-model.number="regForm.age" class="w-full border rounded p-2 outline-none text-sm" placeholder="Ej. 15"></div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 pt-2 border-t">
+                                    <div><label class="block text-xs font-bold text-gray-500 mb-1">Modalidad</label><select v-model="regForm.modality" class="w-full border rounded p-2 outline-none text-sm font-bold text-blue-600"><option value="KATA">KATA</option><option value="KUMITE">KUMITE</option></select></div>
+                                    <div><label class="block text-xs font-bold text-gray-500 mb-1">Tipo</label><select v-model="regForm.type" class="w-full border rounded p-2 outline-none text-sm"><option value="INDIVIDUAL">Individual</option><option value="TEAM">Equipo</option></select></div>
+                                </div>
+                                <div v-if="regForm.modality === 'KUMITE' && regForm.type === 'INDIVIDUAL'" class="bg-red-50 p-3 rounded border border-red-100"><label class="block text-xs font-bold text-red-500 mb-1">Peso (kg)</label><input type="number" step="0.1" v-model.number="regForm.weight" class="w-full border border-red-200 rounded p-2 text-lg font-bold text-center" placeholder="0.0"></div>
+                                <div class="mt-4 bg-gray-800 text-white p-3 rounded-lg text-center"><div class="text-xs text-gray-400 uppercase">Categoría Calculada</div><div class="text-md font-bold text-yellow-400 leading-tight mt-1">{{ calculatedCategory || '...' }}</div></div>
+                                <button @click="addToPending" :disabled="!isValidRegistration" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-3 rounded shadow transition disabled:opacity-50 uppercase tracking-wide">Añadir a Lista</button>
+                            </div>
+                        </div>
+                        <div class="md:col-span-7 flex flex-col h-full">
+                            <div class="bg-white rounded-xl shadow-md border border-gray-200 flex flex-col h-full overflow-hidden">
+                                <div class="p-4 border-b border-gray-200 bg-orange-50 flex justify-between items-center">
+                                    <h2 class="text-lg font-bold text-orange-800"><i class="fas fa-clipboard-check mr-1"></i> Registros Pendientes</h2>
+                                    <div class="bg-orange-200 text-orange-900 px-3 py-1 rounded-full text-xs font-bold">{{ pendingCompetitors.length }}</div>
+                                </div>
+                                <div class="overflow-auto flex-1 bg-gray-50">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-100 sticky top-0 z-10"><tr><th class="table-header text-xs">Atleta</th><th class="table-header text-xs">Datos</th><th class="table-header text-right text-xs">Acciones</th></tr></thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            <tr v-for="(comp, index) in pendingCompetitors" :key="index" class="hover:bg-orange-50 transition">
+                                                <td class="table-cell py-2"><div class="font-bold text-gray-800 text-sm">{{ comp.name }}</div><div class="text-[10px] text-gray-500 font-bold">{{ comp.dojo }}</div></td>
+                                                <td class="table-cell py-2 text-xs"><div class="font-bold text-blue-600">{{ comp.modality }}</div><div class="text-[10px] text-gray-500">{{ comp.categoryLabel }}</div></td>
+                                                <td class="table-cell py-2 text-right"><button @click="removePending(index)" class="text-red-600 hover:bg-red-100 p-2 rounded-full"><i class="fas fa-trash"></i></button></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="p-4 border-t border-gray-200 bg-white">
+                                    <button @click="confirmBatchRegistrationCloud" :disabled="pendingCompetitors.length === 0" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-4 rounded-lg shadow-lg transition disabled:opacity-50 uppercase tracking-widest text-lg flex items-center justify-center gap-3"><i class="fas fa-cloud-upload-alt text-2xl"></i> <span v-if="!isSendingEmail">GUARDAR Y CONFIRMAR</span><span v-else>ENVIANDO CORREO...</span></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+
+            <div v-if="view === 'BRACKETS'" class="h-full p-6 overflow-y-auto">
+                 <h2 class="text-2xl font-black text-gray-800 mb-6 uppercase tracking-tight">Gráficas de Competencia</h2>
+                <div v-if="Object.keys(brackets).length === 0" class="text-center py-20 text-gray-400"><i class="fas fa-sitemap text-6xl mb-4 opacity-30"></i><p>No hay gráficas generadas.</p></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div v-for="(bracket, catName) in brackets" :key="catName" @click="selectBracket(catName)" class="bg-white p-6 rounded-xl shadow border-2 border-transparent hover:border-blue-500 cursor-pointer transition hover:shadow-lg group">
+                        <div class="flex justify-between items-start mb-2"><span class="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded uppercase">{{ bracket.modality }}</span><span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">{{ bracket.competitors ? bracket.competitors.length : 0 }} Atletas</span></div>
+                        <h3 class="text-lg font-bold text-gray-800 leading-tight group-hover:text-blue-600">{{ catName }}</h3>
+                        <div class="mt-4 text-xs text-gray-400 flex items-center gap-1"><i class="fas fa-eye"></i> Ver Llave</div>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="view === 'BRACKET_DETAIL'" class="h-full flex flex-col bg-white">
+                <div class="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center z-20">
+                    <button @click="view = 'BRACKETS'" class="text-gray-600 hover:text-black font-bold flex items-center gap-2"><i class="fas fa-arrow-left"></i> Volver</button>
+                    <div class="text-center"><h2 class="text-xl font-black uppercase">{{ selectedBracketName }}</h2><span class="text-xs text-gray-500 font-bold">GRÁFICA DE COMPETENCIA</span></div>
+                    <div></div>
+                </div>
+                <div class="flex-1 overflow-auto bg-gray-100 cursor-grab active:cursor-grabbing">
+                    <div class="bracket-scroll-area">
+                        <div v-for="(round, rIndex) in currentBracketRounds" :key="rIndex" class="round-column">
+                             <div class="text-center font-bold text-gray-400 mb-6 uppercase text-xs tracking-widest sticky top-0 py-2 z-10 shadow-sm bg-gray-100 rounded">Ronda {{ rIndex + 1 }}</div>
+                             <div v-for="(pair, pIndex) in getPairs(round)" :key="pIndex" class="match-pair">
+                                 <div v-if="pair[0]" @click="openMatchOperator(pair[0])" class="match-card mb-4" :class="{'opacity-50': pair[0].winner && pair[0].winner !== pair[0].p1}">
+                                     <div class="absolute top-1 right-2 text-[8px] font-bold text-gray-400">#{{pair[0].id}}</div>
+                                     <div class="slot-aka" :class="{'slot-winner': pair[0].winner === pair[0].p1 && pair[0].p1}"><span class="comp-name">{{ pair[0].p1 ? pair[0].p1.name : 'BYE' }}</span><span v-if="pair[0].score1 !== undefined && pair[0].p1" class="comp-score">{{ pair[0].score1.toFixed(1) }}</span></div>
+                                     <div class="slot-ao" :class="{'slot-winner': pair[0].winner === pair[0].p2 && pair[0].p2}"><span class="comp-name">{{ pair[0].p2 ? pair[0].p2.name : 'BYE' }}</span><span v-if="pair[0].score2 !== undefined && pair[0].p2" class="comp-score">{{ pair[0].score2.toFixed(1) }}</span></div>
+                                 </div>
+                                 <div v-if="pair.length === 2 && rIndex < currentBracketRounds.length -1" class="connector-vertical"></div>
+                                 <div v-if="pair.length === 2 && rIndex < currentBracketRounds.length -1" class="connector-next"></div>
+                                 <div v-if="pair[1]" @click="openMatchOperator(pair[1])" class="match-card mt-4" :class="{'opacity-50': pair[1].winner && pair[1].winner !== pair[1].p1}">
+                                     <div class="absolute top-1 right-2 text-[8px] font-bold text-gray-400">#{{pair[1].id}}</div>
+                                     <div class="slot-aka" :class="{'slot-winner': pair[1].winner === pair[1].p1 && pair[1].p1}"><span class="comp-name">{{ pair[1].p1 ? pair[1].p1.name : 'BYE' }}</span><span v-if="pair[1].score1 !== undefined && pair[1].p1" class="comp-score">{{ pair[1].score1.toFixed(1) }}</span></div>
+                                     <div class="slot-ao" :class="{'slot-winner': pair[1].winner === pair[1].p2 && pair[1].p2}"><span class="comp-name">{{ pair[1].p2 ? pair[1].p2.name : 'BYE' }}</span><span v-if="pair[1].score2 !== undefined && pair[1].p2" class="comp-score">{{ pair[1].score2.toFixed(1) }}</span></div>
+                                 </div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="view === 'OPERATOR'" class="h-full overflow-y-auto flex flex-col p-4 bg-gray-100">
+                 <div v-if="activeMatchId" class="bg-yellow-100 p-2 text-center border-b border-yellow-200 flex justify-between px-6 items-center mb-4 sticky top-0 z-50 rounded shadow-sm">
+                    <span class="text-xs font-bold text-yellow-800 uppercase"><i class="fas fa-sitemap"></i> Modo Torneo - Match #{{ activeMatchId }}</span>
+                    <button @click="view='BRACKET_DETAIL'; activeMatchId=null" class="text-yellow-800 hover:underline text-xs font-bold">Volver</button>
+                </div>
+                
+                <div v-if="currentMode === 'KATA'" class="bg-white p-6 rounded-2xl shadow-xl max-w-5xl w-full border border-gray-200 mx-auto">
+                     <div class="mb-6 border-b pb-4 border-gray-100 flex items-center justify-between">
+                         <h2 class="text-xl font-black">Operador Kata</h2>
+                         <button @click="openQRModal" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded shadow flex items-center gap-2"><i class="fas fa-qrcode"></i> JUECES INALÁMBRICOS</button>
+                     </div>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div><label class="block text-lg font-bold text-black mb-1 text-center">Competidor</label><input v-model="kataState.competitorName" class="kata-input-box text-lg"></div>
+                        <div><label class="block text-lg font-bold text-black mb-1 text-center">Kata</label><input v-model="kataState.kataName" class="kata-input-box text-lg"></div>
+                     </div>
+                     <div class="flex justify-center gap-4 mb-8">
+                        <button @click="startKataLiveSession" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-lg px-6 py-3 rounded-lg shadow flex items-center gap-2 animate-pulse"><i class="fas fa-broadcast-tower"></i> INICIAR RONDA (SYNC)</button>
+                     </div>
+                     <div class="flex justify-center gap-4 mb-8">
+                        <div v-for="(s, i) in kataState.scores.slice(0,5)" :key="i" class="flex flex-col items-center">
+                            <label class="text-xl font-bold mb-1">J{{i+1}}</label>
+                            <input type="number" step="0.1" v-model.number="kataState.scores[i]" class="w-20 h-16 border-4 border-black rounded-lg text-center text-3xl font-bold bg-white focus:bg-yellow-50 transition">
+                        </div>
+                     </div>
+                     <div class="flex justify-end gap-4 items-center">
+                        <div class="text-4xl font-bold text-gray-800 mr-4">{{ kataState.total }}</div>
+                        <button @click="calculateKata" class="bg-blue-600 text-white font-bold px-6 py-3 rounded shadow">Calcular</button>
+                        <button v-if="activeMatchId" @click="finishKataMatch" class="bg-green-600 text-white font-bold px-6 py-3 rounded shadow">Terminar Match</button>
+                     </div>
+                </div>
+
+                <div v-else class="bg-white p-2 h-full overflow-auto rounded-lg shadow-lg">
+                    <div class="bg-gray-200 rounded-t-lg p-2 flex justify-between items-center border border-gray-300 mb-4">
+                        <div class="font-black uppercase text-gray-700">Kumite Operator</div>
+                        <button @click="openScoreboardWindow" class="bg-blue-600 text-white font-black uppercase px-8 py-2 rounded text-sm shadow-lg">TV</button>
+                    </div>
+                    <div class="grid grid-cols-12 gap-8 max-w-[90rem] mx-auto h-full pb-10 px-4">
+                        <div class="col-span-3 flex flex-col gap-6">
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-3"><div class="text-red-600 font-bold text-lg">AKA</div><input v-model="kumiteState.akaName" class="w-full font-bold text-lg mb-2"><div class="text-4xl font-bold text-center">{{ kumiteState.akaScore }}</div></div>
+                            <div class="grid grid-cols-3 gap-2"><button @click="addPoints('aka', 1)" class="btn-solid-red">+1</button><button @click="addPoints('aka', 2)" class="btn-solid-red">+2</button><button @click="addPoints('aka', 3)" class="btn-solid-red">+3</button></div>
+                        </div>
+                        <div class="col-span-6 flex flex-col items-center">
+                            <div class="text-[8rem] font-bold font-mono leading-none my-4 text-gray-800 bg-black text-white px-8 rounded shadow-2xl">{{ formatTime(kumiteState.timer) }}</div>
+                            <div class="flex gap-4 w-full">
+                                <button @click="startTimer" class="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-4 rounded shadow-lg text-2xl uppercase"><i class="fas fa-play"></i> Start</button>
+                                <button @click="stopTimer" class="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-4 rounded shadow-lg text-2xl uppercase"><i class="fas fa-pause"></i> Stop</button>
+                                <button @click="resetTimer" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white font-bold py-4 rounded shadow-lg text-2xl uppercase"><i class="fas fa-undo"></i> Reset</button>
+                            </div>
+                            <button v-if="activeMatchId" @click="finishKumiteMatch" class="w-full mt-8 bg-blue-800 text-white font-bold py-3 rounded shadow">FINALIZAR MATCH</button>
+                        </div>
+                        <div class="col-span-3 flex flex-col gap-6">
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3"><div class="text-blue-600 font-bold text-lg">AO</div><input v-model="kumiteState.aoName" class="w-full font-bold text-lg mb-2"><div class="text-4xl font-bold text-center">{{ kumiteState.aoScore }}</div></div>
+                            <div class="grid grid-cols-3 gap-2"><button @click="addPoints('ao', 1)" class="btn-solid-blue">+1</button><button @click="addPoints('ao', 2)" class="btn-solid-blue">+2</button><button @click="addPoints('ao', 3)" class="btn-solid-blue">+3</button></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="isQRModalOpen" class="fixed inset-0 z-[400] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm p-4">
+                <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl overflow-hidden h-3/4 flex flex-col">
+                    <div class="bg-purple-600 p-4 text-white flex justify-between items-center">
+                        <h3 class="font-bold text-lg"><i class="fas fa-qrcode mr-2"></i> Escanear para Jueces</h3>
+                        <button @click="closeQRModal" class="text-white hover:text-purple-200"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="flex-1 p-6 overflow-y-auto bg-gray-50 flex flex-wrap justify-center gap-8 items-center">
+                        <div v-for="i in 5" :key="i" class="flex flex-col items-center bg-white p-4 rounded shadow border border-gray-200">
+                            <div class="text-lg font-bold mb-2 text-gray-700">Juez {{ i }}</div>
+                            <div :id="'qrcode-judge-'+i" class="bg-white p-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script type="module">
+    import { createApp, reactive, ref, computed, onMounted, watch, nextTick } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getFirestore, collection, addDoc, doc, deleteDoc, updateDoc, onSnapshot, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+    // CONFIGURACIÓN FIREBASE (REEMPLAZA CON TU PROPIA CONFIGURACIÓN)
+    const firebaseConfig = {
+        apiKey: "AIzaSyBzq0cDKSbuvk48DDlXHDFWVDiqYZ4WCvU",
+        authDomain: "marcador-karate-akt.firebaseapp.com",
+        projectId: "marcador-karate-akt",
+        storageBucket: "marcador-karate-akt.firebasestorage.app",
+        messagingSenderId: "395982372736",
+        appId: "1:395982372736:web:305796b7edabdfe84e4b65",
+    };
+
+    // --- CONFIGURACIÓN DE EMAILJS (Dominios permitidos en Dashboard) ---
+    const EMAILJS_PUBLIC_KEY = '18LqgKqjBeAdDgtzX'; 
+    const EMAILJS_SERVICE_ID = 'service_6d277sb';
+    const EMAILJS_TEMPLATE_ID = 'template_gaysuyd';
+    const RULES = {
+        AGE_GROUPS: [
+            {id:'U12',label:'U12 (10-11)',min:10,max:11},
+            {id:'U14',label:'U14 (12-13)',min:12,max:13},
+            {id:'CADETE',label:'Cadete (14-15)',min:14,max:15},
+            {id:'JUNIOR',label:'Junior (16-17)',min:16,max:17},
+            {id:'U21',label:'U21 (18-20)',min:18,max:20},
+            {id:'SENIOR',label:'Senior (+21)',min:21,max:99}
+        ]
+    };
+    const dojosList = ["SHOTOKAN TAMPICO", "TAISHUKAI NAKAMURA", "RSK KARATE CLUB", "COLORES SCHOOL", "DOJO MATSUKAN", "KARATE RX"];
+    const municipios = [{name:'Tampico',code:'TAM'},{name:'Madero',code:'MAD'},{name:'Altamira',code:'ALT'},{name:'Valles',code:'VAL'}];
+    const officialKatas = ["Bassai Dai", "Kanku Dai", "Jion", "Empi", "Gojushiho Sho", "Unsu", "Gankaku"];
+
+    // SISTEMA DE GRÁFICAS (BracketSystem)
+    const BracketSystem = {
+        distribute(c){ const g={};c.forEach(x=>{if(!g[x.municipio])g[x.municipio]=[];g[x.municipio].push(x)}); const s=[]; const max=Math.max(...Object.values(g).map(x=>x.length)); for(let i=0;i<max;i++){for(let m in g){if(g[m][i])s.push(g[m][i])}} return s },
+        create(c,n){ const s=this.distribute([...c]); let sz=4; if(c.length>4)sz=8; if(c.length>8)sz=16; if(c.length>16)sz=32; const tr=Math.log2(sz); const r=[]; const r1=[]; for(let i=0;i<sz/2;i++){ const p1=s[i]||null; const p2=s[sz-1-i]||null; let w=null; if(p1&&!p2)w=p1; r1.push({ id:`1-${i+1}`, next:`2-${Math.floor(i/2)+1}`, index:i, p1, p2, winner:w, score1:0, score2:0 }) } r.push(r1); for(let i=2;i<=tr;i++){ const rm=[]; const mc=sz/Math.pow(2,i); for(let j=0;j<mc;j++){ rm.push({ id:`${i}-${j+1}`, next:i===tr?'WINNER':`${i+1}-${Math.floor(j/2)+1}`, index:j, p1:null, p2:null, winner:null, score1:0, score2:0 }) } r.push(rm); } this.propagateWinners(r); return {modality:c[0].modality, catName:n, rounds:r, competitors:c}; },
+        propagateWinners(r){ for(let i=0;i<r.length-1;i++){ const cr=r[i]; const nr=r[i+1]; cr.forEach(m=>{ if(m.winner){ const ni=Math.floor(m.index/2); const t=nr[ni]; if(m.index%2===0)t.p1=m.winner; else t.p2=m.winner; } }) } }
+    };
+
+    const app = createApp({
+        setup() {
+            // --- FIREBASE INIT ---
+            const firebaseError = ref(null);
+            let db = null;
+            let auth = null;
+
+            // --- ESTADO AUTENTICACIÓN (LOGIN) ---
+            const userUser = ref(null);
+            const userProfile = ref(null);
+            const isAuthorized = ref(false); // Bloquea la app hasta loguearse
+            const authMode = ref('login');
+            const authMessage = ref('');
+            const authMessageType = ref('error');
+            const authForm = reactive({ email: '', password: '', name: '', tournament: '', role: 'Competidor' });
+
+            // --- ESTADO APP (TORNEO) ---
+            const view = ref('EVENTS_LIST');
+            const isLoading = ref(false);
+            const currentEvent = ref(null);
+            const competitors = ref([]);
+            const brackets = ref({});
+            const events = ref([]);
+            const currentMode = ref('KUMITE');
+            
+            // Roles y Modos
+            const isPopupMode = ref(window.location.search.includes('view=scoreboard')); // Para TV
+            const isJudgeMode = ref(window.location.search.includes('view=judge')); // Para Celular Juez
+            const isSenseiMode = computed(() => userProfile.value?.role === 'SENSEI'); 
+            
+            // Variables de UI
+            const judgeId = ref(null);
+            const selectedBracketName = ref(null);
+            const activeMatchId = ref(null);
+            const isEventModalOpen = ref(false);
+            const isEditModalOpen = ref(false);
+            const showSuccessModal = ref(false);
+            const isQRModalOpen = ref(false);
+            const isDojoDropdownOpen = ref(false);
+            const isDojoLocked = ref(false);
+            
+            // Forms Data
+            const eventForm = reactive({ name: '', location: '', description: '', startDate: '', endDate: '' });
+            const regForm = reactive({ name:'', age:null, gender:'M', weight:null, modality:'KUMITE', type:'INDIVIDUAL', dojo:'', municipio:'Tampico', email:'', teamMembers:[] });
+            const pendingCompetitors = ref([]);
+            const editingCompetitor = ref({});
+            const editingIndex = ref(-1);
+            const editField = ref('name');
+            const editValue = ref('');
+
+            // Game States
+            const kumiteState = reactive({ akaName:'ROJO', akaScore:0, aoName:'AZUL', aoScore:0, timer:180 });
+            const kataState = reactive({ competitorName:'', kataName:'', scores:[0,0,0,0,0], total:"0.00", scoreVisible:false });
+            let timerInterval = ref(null);
+
+            // --- INICIALIZACIÓN ---
+            try {
+                const fbApp = initializeApp(firebaseConfig);
+                db = getFirestore(fbApp);
+                auth = getAuth(fbApp);
+                
+                // Listener de Auth
+                onAuthStateChanged(auth, async (user) => {
+                    userUser.value = user;
+                    if (user) {
+                        // Cargar perfil
+                        const userDoc = await getDoc(doc(db, 'users', user.uid));
+                        if (userDoc.exists()) {
+                            userProfile.value = userDoc.data();
+                            isAuthorized.value = true;
+                            // Redirección por Rol
+                            if(userProfile.value.role === 'SENSEI') view.value = 'PRE_REGISTRATION';
+                            else view.value = 'EVENTS_LIST';
+                            // Cargar datos
+                            loadData();
+                        } else {
+                            // Usuario sin perfil (raro), crear dummy
+                            userProfile.value = { role: 'SENSEI', email: user.email };
+                            isAuthorized.value = true;
+                        }
+                    } else {
+                        isAuthorized.value = false;
+                        userProfile.value = null;
+                    }
+                });
+            } catch (err) {
+                console.warn("Modo Offline/Local", err);
+                firebaseError.value = "Modo Local";
+                // En modo local permitimos entrar como Directivo dummy
+                if(!isAuthorized.value && !isPopupMode.value && !isJudgeMode.value) {
+                   // Opcional: Auto-login en local si lo deseas, o dejar login
+                }
+            }
+
+            // --- FUNCIONES DE AUTH ---
+            const toggleAuthMode = () => { authMode.value = authMode.value === 'login' ? 'register' : 'login'; authMessage.value = ''; };
+            
+            const handleAuthAction = async () => {
+                authMessage.value = '';
+                if (!authForm.email || !authForm.password) return authMessage.value = "Faltan datos";
+                try {
+                    isLoading.value = true;
+                    if (authMode.value === 'register') {
+                        if (!authForm.name) throw new Error("Nombre es requerido");
+                        const cred = await createUserWithEmailAndPassword(auth, authForm.email, authForm.password);
+                        await setDoc(doc(db, 'users', cred.user.uid), { 
+                            name: authForm.name, email: authForm.email, role: authForm.role, tournament: authForm.tournament, createdAt: Date.now() 
+                        });
+                        authMessageType.value = 'success';
+                        authMessage.value = "Cuenta creada. Redirigiendo...";
+                        window.location.href = 'index.html';
+                    } else {
+                        await signInWithEmailAndPassword(auth, authForm.email, authForm.password);
+                        window.location.href = 'index.html';
+                    }
+                } catch (e) {
+                    authMessageType.value = 'error';
+                    authMessage.value = e.message;
+                } finally { isLoading.value = false; }
+            };
+
+            const loginWithGoogle = async () => {
+                try {
+                    const provider = new GoogleAuthProvider();
+                    const result = await signInWithPopup(auth, provider);
+                    const user = result.user;
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    if (!userDoc.exists()) {
+                        await setDoc(doc(db, 'users', user.uid), { name: user.displayName, email: user.email, role: 'SENSEI', createdAt: Date.now() });
+                    }
+                    window.location.href = 'index.html';
+                } catch (e) { alert("Error Google: " + e.message); }
+            };
+
+            const logout = async () => { await signOut(auth); location.reload(); };
+
+            // --- CARGA DE DATOS ---
+            const loadData = () => {
+                if(!db) return;
+                onSnapshot(collection(db, 'events'), (s) => events.value = s.docs.map(d => ({id:d.id, ...d.data()})));
+                onSnapshot(collection(db, 'competitors'), (s) => competitors.value = s.docs.map(d => ({id:d.id, ...d.data()})));
+                onSnapshot(collection(db, 'brackets'), (s) => { const b={}; s.docs.forEach(d=>{b[d.id]=d.data()}); brackets.value=b; });
+                // Listener de Jueces para Operador
+                onSnapshot(doc(db, 'sessions', 'kata_live_tatami_1'), (docSnap) => {
+                    if (docSnap.exists() && !isJudgeMode.value) {
+                        const data = docSnap.data();
+                        if (data.judge_map) {
+                            const newScores = [...kataState.scores];
+                            let changed = false;
+                            for (let i = 1; i <= 5; i++) {
+                                if (data.judge_map[i] && data.judge_map[i] !== 0) {
+                                    newScores[i-1] = data.judge_map[i];
+                                    changed = true;
+                                }
+                            }
+                            if (changed) { kataState.scores = newScores; calculateKata(); }
+                        }
+                    }
+                });
+            };
+
+            // --- LÓGICA TORNEO ---
+            const createEvent = async () => { await addDoc(collection(db, 'events'), { ...eventForm, createdAt: new Date().toISOString() }); closeEventModal(); };
+            const deleteEvent = async (id) => { if(confirm("¿Eliminar evento?")) await deleteDoc(doc(db, 'events', id)); };
+            const selectEvent = (evt) => { currentEvent.value = evt; view.value = isSenseiMode.value ? 'PRE_REGISTRATION' : 'REGISTRATION'; };
+            const exitEvent = () => { currentEvent.value = null; view.value = 'EVENTS_LIST'; };
+
+            const addToPending = () => {
+                const comp = { ...regForm, categoryLabel: calculatedCategory.value, eventId: currentEvent.value?.id };
+                pendingCompetitors.value.push(comp);
+                regForm.name = '';
+                if(!isDojoLocked.value) isDojoLocked.value = true;
+            };
+
+            const confirmBatchRegistrationCloud = async () => {
+                try {
+                    isLoading.value = true;
+                    const batch = pendingCompetitors.value.map(c => addDoc(collection(db, 'competitors'), c));
+                    await Promise.all(batch);
+                    // Email logic omitted for brevity, add if needed
+                    pendingCompetitors.value = [];
+                    showSuccessModal.value = true;
+                    isDojoLocked.value = false;
+                } catch(e) { alert(e.message); } finally { isLoading.value = false; }
+            };
+
+            // Brackets & Matches
+            const generateBrackets = async () => {
+                const c={}; competitors.value.forEach(x=>{ if(!c[x.categoryLabel])c[x.categoryLabel]=[]; c[x.categoryLabel].push(x) });
+                for(let k in c){ await setDoc(doc(db, 'brackets', k.replace(/[\/\s]/g,'_')), BracketSystem.create(c[k],k)); }
+                view.value='BRACKETS';
+            };
+            const openMatchOperator = (m) => {
+                if(!m.p1 || !m.p2) return;
+                activeMatchId.value = m.id;
+                currentMode.value = brackets.value[selectedBracketName.value].modality;
+                if(currentMode.value === 'KATA') {
+                    kataState.competitorName = m.p1.name;
+                    resetKata();
+                } else {
+                    kumiteState.akaName = m.p1.name;
+                    kumiteState.aoName = m.p2.name;
+                    resetTimer();
+                }
+                view.value = 'OPERATOR';
+            };
+
+            // Jueces Logic
+            const startKataLiveSession = async () => {
+                await setDoc(doc(db, 'sessions', 'kata_live_tatami_1'), {
+                    competitorName: kataState.competitorName, kataName: kataState.kataName,
+                    timestamp: Date.now(), judge_map: { "1":0,"2":0,"3":0,"4":0,"5":0 }
+                });
+                alert("Sincronización Iniciada");
+            };
+
+            // Helpers y Computados
+            const calculatedCategory = computed(() => {
+                if(!regForm.age) return '';
+                const grp = RULES.AGE_GROUPS.find(g => regForm.age >= g.min && regForm.age <= g.max);
+                return grp ? `${grp.label} ${regForm.gender} ${regForm.modality}` : 'Sin Categoría';
+            });
+            const sortedEvents = computed(() => events.value.slice().sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)));
+            const filteredCompetitors = computed(() => competitors.value);
+            const filteredDojos = computed(() => dojosList.filter(d => d.toLowerCase().includes(regForm.dojo.toLowerCase())));
+            const currentBracketRounds = computed(() => selectedBracketName.value ? brackets.value[selectedBracketName.value].rounds : []);
+            
+            // Kata Calc
+            const calculateKata = () => { const s=[...kataState.scores].sort((a,b)=>a-b); kataState.total = s.slice(1,4).reduce((a,b)=>a+b,0).toFixed(2); };
+            const resetKata = () => { kataState.scores=[0,0,0,0,0]; kataState.total="0.00"; };
+
+            // Kumite Timer
+            const startTimer = () => { if(!timerInterval.value) timerInterval.value = setInterval(() => { if(kumiteState.timer>0) kumiteState.timer--; }, 1000); };
+            const stopTimer = () => { clearInterval(timerInterval.value); timerInterval.value = null; };
+            const resetTimer = () => { stopTimer(); kumiteState.timer = 180; kumiteState.akaScore=0; kumiteState.aoScore=0; };
+            const addPoints = (side, pts) => { if(side==='aka') kumiteState.akaScore+=pts; else kumiteState.aoScore+=pts; };
+            const formatTime = (s) => `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
+
+            // Modals
+            const openEventModal = () => isEventModalOpen.value = true;
+            const closeEventModal = () => isEventModalOpen.value = false;
+            const selectBracket = (n) => { selectedBracketName.value = n; view.value = 'BRACKET_DETAIL'; };
+            const openQRModal = () => { isQRModalOpen.value=true; nextTick(()=>{ for(let i=1;i<=5;i++) new QRCode(document.getElementById(`qrcode-judge-${i}`), { text: `${window.location.origin}${window.location.pathname}?view=judge&judgeId=${i}`, width:128, height:128 }); }); };
+            const closeQRModal = () => isQRModalOpen.value = false;
+            const removePending = (i) => pendingCompetitors.value.splice(i,1);
+            const selectDojo = (d) => { regForm.dojo = d; isDojoDropdownOpen.value = false; };
+            const closeDojoDropdown = () => setTimeout(()=>isDojoDropdownOpen.value=false, 200);
+            const getPairs = (r) => { const p=[]; for(let i=0;i<r.length;i+=2) p.push([r[i], r[i+1]]); return p; };
+            const finishSession = () => { pendingCompetitors.value=[]; showSuccessModal.value=false; };
+
+            return {
+                // Auth
+                authForm, authMode, authMessage, authMessageType, isAuthorized, userProfile, 
+                toggleAuthMode, handleAuthAction, loginWithGoogle, logout,
+                // App
+                view, isLoading, firebaseError, events, sortedEvents, currentEvent, 
+                isSenseiMode, isPopupMode, isJudgeMode, competitors, brackets,
+                // UI
+                isEventModalOpen, openEventModal, closeEventModal, 
+                regForm, pendingCompetitors, calculatedCategory, filteredDojos, addToPending,
+                isDojoDropdownOpen, selectDojo, closeDojoDropdown, isDojoLocked,
+                confirmBatchRegistrationCloud, showSuccessModal, finishSession, removePending, deleteEvent,
+                selectEvent, exitEvent, deleteCompetitor: async(id)=>{/*impl*/},
+                generateBrackets, selectBracket, selectedBracketName, currentBracketRounds, getPairs,
+                openMatchOperator, activeMatchId, currentMode,
+                kataState, kumiteState, formatTime, startTimer, stopTimer, resetTimer, addPoints, calculateKata,
+                startKataLiveSession, openQRModal, isQRModalOpen, closeQRModal, openScoreboardWindow: ()=>{}
+            };
+        }
+    }).mount('#app');
+</script>
+</body>
+</html>

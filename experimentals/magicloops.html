@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>WKF Kumite Tournament App</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    /* CSS for external_scoreboard.html */
+:root {
+  --aka-color: #e63946;
+  --aka-light: #ffccd5;
+  --ao-color: #457b9d;
+  --ao-light: #a8dadc;
+  --neutral: #f1faee;
+  --dark: #1d3557;
+  --warning: #ffb703;
+  --danger: #d62828;
+  --green: #2a9d8f;
+  --black: #000;
+  --white: #fff;
+  --yellow: #ffb703;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: var(--black);
+  color: var(--white);
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.event-info {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.tatami-box {
+  background-color: var(--green);
+  color: var(--white);
+  padding: 0.5rem 2rem;
+  border-radius: 0.5rem;
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.competitor-codes {
+  font-size: 2.2rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.scoreboard-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  flex-grow: 1;
+  justify-content: center;
+}
+
+.competitor-row {
+  display: flex;
+  height: 15vh;
+  align-items: center;
+}
+
+.country-box {
+  background-color: var(--white);
+  color: var(--black);
+  width: 120px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  border-radius: 0.5rem 0 0 0.5rem;
+}
+
+.name-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  flex-grow: 1;
+  border-radius: 0 0.5rem 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.aka .name-bar {
+  background-color: var(--aka-color);
+}
+
+.ao .name-bar {
+  background-color: var(--ao-color);
+}
+
+.competitor-name {
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.score-box {
+  width: 120px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 5rem;
+  font-weight: 700;
+}
+
+.aka .score-box {
+  background-color: var(--aka-color);
+  border-left: 4px solid var(--white);
+}
+
+.ao .score-box {
+  background-color: var(--ao-color);
+  border-left: 4px solid var(--white);
+}
+
+.penalties {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.penalty-badge {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.aka .penalty-badge.active {
+  background-color: var(--aka-color);
+  color: var(--white);
+}
+
+.ao .penalty-badge.active {
+  background-color: var(--ao-color);
+  color: var(--white);
+}
+
+.penalty-badge.inactive {
+  border: 2px solid #666;
+  color: #666;
+  background-color: transparent;
+}
+
+.timer-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.timer-display {
+  font-size: 6rem;
+  font-weight: 700;
+  font-family: 'Oswald', sans-serif;
+  color: var(--yellow);
+}
+
+.senshu-indicator {
+  position: absolute;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: gold;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  right: 140px;
+}
+
+.senshu-star {
+  color: gold;
+  font-size: 2rem;
+}
+
+.aka .senshu-indicator {
+  top: 1rem;
+}
+
+.ao .senshu-indicator {
+  bottom: 1rem;
+}
+
+/* Bracket Styles */
+.bracket-settings {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.bracket-container {
+  overflow-x: auto;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.bracket {
+  display: flex;
+  justify-content: space-between;
+  min-width: 1000px;
+}
+
+.round {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 200px;
+  margin: 0 20px;
+}
+
+.match-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin: 10px 0;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.match-competitor {
+  padding: 8px 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.match-competitor.aka {
+  border-left: 4px solid var(--aka-color);
+}
+
+.match-competitor.ao {
+  border-left: 4px solid var(--ao-color);
+}
+
+.match-competitor.winner {
+  font-weight: 700;
+  background-color: #f8f9fa;
+}
+
+.medals-display {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.medal {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+  border-radius: 50%;
+  margin-right: 10px;
+  color: white;
+  font-weight: 700;
+}
+
+.medal-gold {
+  background-color: #ffd700;
+}
+
+.medal-silver {
+  background-color: #c0c0c0;
+}
+
+.medal-bronze {
+  background-color: #cd7f32;
+}
+
+/* Animations */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.pulse {
+  animation: pulse 0.5s;
+}
+
+/* Modals */
+.modal-content {
+  border-radius: 10px;
+  border: none;
+}
+
+.modal-header {
+  background-color: var(--dark);
+  color: white;
+  border-radius: 10px 10px 0 0;
+}
+
+/* Responsiveness */
+@media (max-width: 992px) {
+  .score-btn, .penalty-btn {
+    font-size: 0.9rem;
+    padding: 8px 5px;
+  }
+  
+  .competitor-name {
+    font-size: 1.2rem;
+  }
+  
+  .score-display, .timer-display {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .competitor-panel {
+    margin-bottom: 15px;
+  }
+  
+  .timer-panel {
+    margin-bottom: 15px;
+  }
+}
+  </head>
+  <body>
+    <!-- App Header -->
+    <header class="app-header">
+      <div class="container d-flex justify-content-between align-items-center">
+        <h1 class="app-title"><i class="fas fa-karate me-2"></i> WKF Kumite Tournament</h1>
+        <div>
+          <button class="btn btn-outline-light" id="settingsBtn"><i class="fas fa-cog me-1"></i> Settings</button>
+        </div>
+      </div>
+    </header>
+    
+    <!-- Main Navigation -->
+    <div class="container mt-4">
+      <ul class="nav nav-tabs nav-fill" id="appTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="scoreboard-tab" data-bs-toggle="tab" data-bs-target="#scoreboard" type="button" role="tab" aria-controls="scoreboard" aria-selected="true">
+            <i class="fas fa-clipboard-list me-2"></i> Scoreboard
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="bracket-tab" data-bs-toggle="tab" data-bs-target="#bracket" type="button" role="tab" aria-controls="bracket" aria-selected="false">
+            <i class="fas fa-sitemap me-2"></i> Tournament Bracket
+          </button>
+        </li>
+      </ul>
+      
+      <!-- Tab Content -->
+      <div class="tab-content p-3 bg-white" id="appTabsContent">
+        <!-- Scoreboard Tab -->
+        <div class="tab-pane fade show active" id="scoreboard" role="tabpanel" aria-labelledby="scoreboard-tab">
+          <!-- Category Information -->
+          <div class="alert alert-secondary d-flex justify-content-between align-items-center">
+            <div>
+              <span class="badge bg-dark me-2">Category</span>
+              <span id="categoryDisplay">Senior Male -75kg</span>
+            </div>
+            <div>
+              <span class="badge bg-dark me-2">Match</span>
+              <span id="matchDisplay">Quarter Final #2</span>
+            </div>
+          </div>
+          
+          <!-- Competitor Panels & Timer -->
+          <div class="row mb-4">
+            <!-- AKA Competitor -->
+            <div class="col-md-4 mb-3 mb-md-0">
+              <div class="competitor-panel aka">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h3 class="m-0">AKA</h3>
+                  <div id="akaSenshu" class="senshu-badge d-none"><i class="fas fa-star me-1"></i> SENSHU</div>
+                </div>
+                <div class="competitor-name" id="akaName">John Smith</div>
+                <div class="competitor-country" id="akaCountry">USA</div>
+                <div class="score-display" id="akaScore">0</div>
+              </div>
+            </div>
+            
+            <!-- Timer -->
+            <div class="col-md-4 mb-3 mb-md-0">
+              <div class="timer-panel">
+                <h4>Match Time</h4>
+                <div class="timer-display" id="timerDisplay">3:00</div>
+                <div class="timer-controls">
+                  <button id="startTimer" class="btn btn-success"><i class="fas fa-play"></i> Start</button>
+                  <button id="stopTimer" class="btn btn-danger" disabled><i class="fas fa-stop"></i> Stop</button>
+                  <button id="resetTimer" class="btn btn-secondary"><i class="fas fa-redo"></i> Reset</button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- AO Competitor -->
+            <div class="col-md-4">
+              <div class="competitor-panel ao">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h3 class="m-0">AO</h3>
+                  <div id="aoSenshu" class="senshu-badge d-none"><i class="fas fa-star me-1"></i> SENSHU</div>
+                </div>
+                <div class="competitor-name" id="aoName">Carlos Mendez</div>
+                <div class="competitor-country" id="aoCountry">ESP</div>
+                <div class="score-display" id="aoScore">0</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Scoring Controls -->
+          <div class="row">
+            <!-- AKA Scoring -->
+            <div class="col-md-4">
+              <h5 class="section-title">AKA Score</h5>
+              <div class="row">
+                <div class="col-4">
+                  <button class="btn btn-outline-danger score-btn" data-competitor="aka" data-score="1">
+                    YUKO<br>+1
+                  </button>
+                </div>
+                <div class="col-4">
+                  <button class="btn btn-outline-danger score-btn" data-competitor="aka" data-score="2">
+                    WAZA-ARI<br>+2
+                  </button>
+                </div>
+                <div class="col-4">
+                  <button class="btn btn-outline-danger score-btn" data-competitor="aka" data-score="3">
+                    IPPON<br>+3
+                  </button>
+                </div>
+              </div>
+              
+              <h5 class="section-title mt-4">AKA Penalties</h5>
+              <div class="penalty-buttons d-flex flex-wrap">
+                <button class="btn btn-sm btn-outline-warning penalty-btn" data-competitor="aka" data-penalty="chui1">CHUI 1</button>
+                <button class="btn btn-sm btn-outline-warning penalty-btn" data-competitor="aka" data-penalty="chui2">CHUI 2</button>
+                <button class="btn btn-sm btn-outline-warning penalty-btn" data-competitor="aka" data-penalty="chui3">CHUI 3</button>
+                <button class="btn btn-sm btn-outline-danger penalty-btn" data-competitor="aka" data-penalty="hansoku-chui">HANSOKU CHUI</button>
+              </div>
+              
+              <div class="penalty-display" id="akaPenaltyDisplay">
+                <!-- Penalties will be displayed here -->
+              </div>
+            </div>
+            
+            <!-- Control Panel -->
+            <div class="col-md-4">
+              <h5 class="section-title">Match Controls</h5>
+              <div class="d-grid gap-2">
+                <button id="setSenshuAka" class="btn btn-outline-dark control-btn">
+                  <i class="fas fa-star me-1"></i> Set Senshu AKA
+                </button>
+                <button id="setSenshuAo" class="btn btn-outline-dark control-btn">
+                  <i class="fas fa-star me-1"></i> Set Senshu AO
+                </button>
+                <button id="removeSenshu" class="btn btn-outline-dark control-btn">
+                  <i class="fas fa-times me-1"></i> Remove Senshu
+                </button>
+                <button id="hanteiBtn" class="btn btn-outline-dark control-btn">
+                  <i class="fas fa-gavel me-1"></i> Hantei (Decision)
+                </button>
+                <button id="shikkakuAka" class="btn btn-danger control-btn">
+                  <i class="fas fa-ban me-1"></i> SHIKKAKU AKA
+                </button>
+                <button id="shikkakuAo" class="btn btn-danger control-btn">
+                  <i class="fas fa-ban me-1"></i> SHIKKAKU AO
+                </button>
+                <button id="endBout" class="btn btn-primary control-btn">
+                  <i class="fas fa-flag-checkered me-1"></i> End Bout
+                </button>
+                <button id="resetBout" class="btn btn-secondary control-btn">
+                  <i class="fas fa-sync me-1"></i> Reset Bout
+                </button>
+              </div>
+            </div>
+            
+            <!-- AO Scoring -->
+            <div class="col-md-4">
+              <h5 class="section-title">AO Score</h5>
+              <div class="row">
+                <div class="col-4">
+                  <button class="btn btn-outline-primary score-btn" data-competitor="ao" data-score="1">
+                    YUKO<br>+1
+                  </button>
+                </div>
+                <div class="col-4">
+                  <button class="btn btn-outline-primary score-btn" data-competitor="ao" data-score="2">
+                    WAZA-ARI<br>+2
+                  </button>
+                </div>
+                <div class="col-4">
+                  <button class="btn btn-outline-primary score-btn" data-competitor="ao" data-score="3">
+                    IPPON<br>+3
+                  </button>
+                </div>
+              </div>
+              
+              <h5 class="section-title mt-4">AO Penalties</h5>
+              <div class="penalty-buttons d-flex flex-wrap">
+                <button class="btn btn-sm btn-outline-warning penalty-btn" data-competitor="ao" data-penalty="chui1">CHUI 1</button>
+                <button class="btn btn-sm btn-outline-warning penalty-btn" data-competitor="ao" data-penalty="chui2">CHUI 2</button>
+                <button class="btn btn-sm btn-outline-warning penalty-btn" data-competitor="ao" data-penalty="chui3">CHUI 3</button>
+                <button class="btn btn-sm btn-outline-danger penalty-btn" data-competitor="ao" data-penalty="hansoku-chui">HANSOKU CHUI</button>
+              </div>
+              
+              <div class="penalty-display" id="aoPenaltyDisplay">
+                <!-- Penalties will be displayed here -->
+              </div>
+            </div>
+          </div>
+          
+          <div class="text-center">
+            <button id="externalScoreboardBtn" class="btn btn-success mt-3">Marcador Externo</button>
+          </div>
+        </div>
+        
+        <!-- Tournament Bracket Tab -->
+        <div class="tab-pane fade" id="bracket" role="tabpanel" aria-labelledby="bracket-tab">
+          <!-- Bracket Settings Form -->
+          <div class="bracket-settings">
+            <h4 class="mb-3">Tournament Settings</h4>
+            <form id="bracketSettingsForm">
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label for="tournamentType" class="form-label">Tournament Type</label>
+                  <select class="form-select" id="tournamentType">
+                    <option value="single">Single Elimination with Repechage</option>
+                    <option value="roundrobin">Round Robin Groups</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label for="participantsCount" class="form-label">Number of Participants</label>
+                  <select class="form-select" id="participantsCount">
+                    <option value="8">8 Participants</option>
+                    <option value="16">16 Participants</option>
+                    <option value="32">32 Participants</option>
+                    <option value="64">64 Participants</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label for="weightDivision" class="form-label">Weight Division</label>
+                  <select class="form-select" id="weightDivision">
+                    <option value="-60kg">-60kg</option>
+                    <option value="-67kg">-67kg</option>
+                    <option value="-75kg" selected>-75kg</option>
+                    <option value="-84kg">-84kg</option>
+                    <option value="+84kg">+84kg</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label for="ageCategory" class="form-label">Age Category</label>
+                  <select class="form-select" id="ageCategory">
+                    <option value="senior">Seniors (21+ years)</option>
+                    <option value="u21">Under 21</option>
+                    <option value="junior">Junior (16-17 years)</option>
+                    <option value="cadet">Cadet (14-15 years)</option>
+                    <option value="u14">Under 14 years</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="text-end">
+                <button type="submit" class="btn btn-primary">Generate Bracket</button>
+              </div>
+            </form>
+          </div>
+          
+          <!-- Tournament Bracket Display -->
+          <div class="bracket-container">
+            <div id="bracketDisplay" class="text-center py-5">
+              <i class="fas fa-sitemap fa-4x mb-3 text-muted"></i>
+              <h4 class="text-muted">Generate a tournament bracket to get started</h4>
+            </div>
+            
+            <!-- Sample bracket structure (will be generated by JS) -->
+            <div class="bracket d-none" id="sampleBracket">
+              <!-- Quarter Finals -->
+              <div class="round">
+                <h5 class="text-center">Quarter Finals</h5>
+                <div class="match-card">
+                  <div class="match-competitor aka">John Smith (USA) - 3</div>
+                  <div class="match-competitor ao winner">Carlos Mendez (ESP) - 5</div>
+                </div>
+                <div class="match-card">
+                  <div class="match-competitor aka winner">Alex Johnson (CAN) - 7</div>
+                  <div class="match-competitor ao">Pierre Dubois (FRA) - 2</div>
+                </div>
+                <div class="match-card">
+                  <div class="match-competitor aka">Yuri Petrov (RUS) - 1</div>
+                  <div class="match-competitor ao winner">Kenji Tanaka (JPN) - 4</div>
+                </div>
+                <div class="match-card">
+                  <div class="match-competitor aka winner">Ali Hassan (EGY) - 8</div>
+                  <div class="match-competitor ao">Marco Silva (BRA) - 6</div>
+                </div>
+              </div>
+              
+              <!-- Semi Finals -->
+              <div class="round">
+                <h5 class="text-center">Semi Finals</h5>
+                <div class="match-card">
+                  <div class="match-competitor aka">Carlos Mendez (ESP)</div>
+                  <div class="match-competitor ao winner">Alex Johnson (CAN) - 4</div>
+                </div>
+                <div class="match-card">
+                  <div class="match-competitor aka">Kenji Tanaka (JPN) - 2</div>
+                  <div class="match-competitor ao winner">Ali Hassan (EGY) - 5</div>
+                </div>
+              </div>
+              
+              <!-- Final -->
+              <div class="round">
+                <h5 class="text-center">Final</h5>
+                <div class="match-card">
+                  <div class="match-competitor aka winner">Alex Johnson (CAN) - 5</div>
+                  <div class="match-competitor ao">Ali Hassan (EGY) - 3</div>
+                </div>
+              </div>
+              
+              <!-- Bronze Medal Bouts -->
+              <div class="round">
+                <h5 class="text-center">Bronze Medal</h5>
+                <div class="match-card">
+                  <div class="match-competitor aka">Carlos Mendez (ESP) - 2</div>
+                  <div class="match-competitor ao winner">Kenji Tanaka (JPN) - 4</div>
+                </div>
+                <div class="match-card">
+                  <div class="match-competitor aka winner">Marco Silva (BRA) - 5</div>
+                  <div class="match-competitor ao">Yuri Petrov (RUS) - 1</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Medal Winners -->
+          <div class="medals-display d-none" id="medalsDisplay">
+            <h4 class="mb-4">Medal Winners - Senior Male -75kg</h4>
+            <div class="row">
+              <div class="col-md-3 mb-3">
+                <div class="card">
+                  <div class="card-header bg-warning text-dark">
+                    <span class="medal medal-gold">1</span> Gold Medal
+                  </div>
+                  <div class="card-body">
+                    <h5 class="card-title">Alex Johnson</h5>
+                    <p class="card-text">Canada (CAN)</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3 mb-3">
+                <div class="card">
+                  <div class="card-header bg-light text-dark">
+                    <span class="medal medal-silver">2</span> Silver Medal
+                  </div>
+                  <div class="card-body">
+                    <h5 class="card-title">Ali Hassan</h5>
+                    <p class="card-text">Egypt (EGY)</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3 mb-3">
+                <div class="card">
+                  <div class="card-header" style="background-color: #cd7f32; color: white;">
+                    <span class="medal medal-bronze">3</span> Bronze Medal
+                  </div>
+                  <div class="card-body">
+                    <h5 class="card-title">Kenji Tanaka</h5>
+                    <p class="card-text">Japan (JPN)</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3 mb-3">
+                <div class="card">
+                  <div class="card-header" style="background-color: #cd7f32; color: white;">
+                    <span class="medal medal-bronze">3</span> Bronze Medal
+                  </div>
+                  <div class="card-body">
+                    <h5 class="card-title">Marco Silva</h5>
+                    <p class="card-text">Brazil (BRA)</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="d-grid gap-2 mt-4">
+          </div>
+          
+          <div class="text-center">
+            <button id="externalScoreboardBtnBracket" class="btn btn-success mt-3">Marcador Externo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Modals -->
+    
+    <!-- Winner Modal -->
+    <div class="modal fade" id="winnerModal" tabindex="-1" aria-labelledby="winnerModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="winnerModalLabel">Match Result</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body text-center py-4">
+            <div class="winner-display mb-3">
+              <div id="winnerColor" class="badge bg-danger mb-2 p-2">AKA WINNER</div>
+              <h3 id="winnerName">John Smith (USA)</h3>
+              <p class="lead mb-0">Score: <span id="winnerScore">5</span> - <span id="loserScore">3</span></p>
+              <p class="text-muted" id="winnerMethod">By points</p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" id="updateBracketBtn">Update Bracket</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Hantei Modal -->
+    <div class="modal fade" id="hanteiModal" tabindex="-1" aria-labelledby="hanteiModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="hanteiModalLabel">Hantei (Referee Decision)</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>In case of a tie, please input the referee votes:</p>
+            <div class="row">
+              <div class="col-6">
+                <div class="card mb-3">
+                  <div class="card-header bg-danger text-white">AKA</div>
+                  <div class="card-body">
+                    <h5 id="hanteiAkaName">John Smith (USA)</h5>
+                    <div class="input-group mt-3">
+                      <span class="input-group-text">Votes</span>
+                      <input type="number" class="form-control" id="akaVotes" min="0" max="5" value="0">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="card mb-3">
+                  <div class="card-header bg-primary text-white">AO</div>
+                  <div class="card-body">
+                    <h5 id="hanteiAoName">Carlos Mendez (ESP)</h5>
+                    <div class="input-group mt-3">
+                      <span class="input-group-text">Votes</span>
+                      <input type="number" class="form-control" id="aoVotes" min="0" max="5" value="0">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="confirmHantei">Confirm Decision</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="settingsModalLabel">Bout Settings</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="boutSettingsForm">
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label for="categorySelect" class="form-label">Age Category</label>
+                  <select class="form-select" id="categorySelect">
+                    <option value="senior">Seniors (21+ years) - 3:00</option>
+                    <option value="u21">Under 21 - 3:00</option>
+                    <option value="junior">Junior (16-17 years) - 2:00</option>
+                    <option value="cadet">Cadet (14-15 years) - 2:00</option>
+                    <option value="u14">Under 14 years - 1:30</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label for="weightSelect" class="form-label">Weight Division</label>
+                  <select class="form-select" id="weightSelect">
+                    <option value="-60kg">-60kg</option>
+                    <option value="-67kg">-67kg</option>
+                    <option value="-75kg" selected>-75kg</option>
+                    <option value="-84kg">-84kg</option>
+                    <option value="+84kg">+84kg</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label for="matchType" class="form-label">Match Type</label>
+                  <select class="form-select" id="matchType">
+                    <option value="elimination">Elimination Round</option>
+                    <option value="quarterfinal">Quarter Final</option>
+                    <option value="semifinal">Semi Final</option>
+                    <option value="final">Final</option>
+                    <option value="bronze">Bronze Medal Match</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label for="matchNumber" class="form-label">Match Number</label>
+                  <input type="number" class="form-control" id="matchNumber" min="1" value="1">
+                </div>
+              </div>
+              
+              <hr>
+              
+              <h5 class="mb-3">AKA Competitor</h5>
+              <div class="row mb-3">
+                <div class="col-md-8">
+                  <label for="akaNameInput" class="form-label">Full Name</label>
+                  <input type="text" class="form-control" id="akaNameInput" value="John Smith">
+                </div>
+                <div class="col-md-4">
+                  <label for="akaCountryInput" class="form-label">Country Code</label>
+                  <input type="text" class="form-control" id="akaCountryInput" maxlength="3" value="USA">
+                </div>
+              </div>
+              
+              <h5 class="mb-3">AO Competitor</h5>
+              <div class="row mb-3">
+                <div class="col-md-8">
+                  <label for="aoNameInput" class="form-label">Full Name</label>
+                  <input type="text" class="form-control" id="aoNameInput" value="Carlos Mendez">
+                </div>
+                <div class="col-md-4">
+                  <label for="aoCountryInput" class="form-label">Country Code</label>
+                  <input type="text" class="form-control" id="aoCountryInput" maxlength="3" value="ESP">
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="saveSettings">Save Settings</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script id="app-script">
+  document.addEventListener('DOMContentLoaded', function() {
+    // Global Variables
+    let timerInterval;
+    let timerRunning = false;
+    let remainingTime = 180; // Default 3 minutes in seconds
+    let akaScore = 0;
+    let aoScore = 0;
+    let akaSenshuActive = false;
+    let aoSenshuActive = false;
+    let akaPenalties = [];
+    let aoPenalties = [];
+    let matchCategory = "senior"; // Default category
+    
+    // DOM Elements
+    const timerDisplay = document.getElementById('timerDisplay');
+    const startTimerBtn = document.getElementById('startTimer');
+    const stopTimerBtn = document.getElementById('stopTimer');
+    const resetTimerBtn = document.getElementById('resetTimer');
+    const akaScoreDisplay = document.getElementById('akaScore');
+    const aoScoreDisplay = document.getElementById('aoScore');
+    const akaSenshuBadge = document.getElementById('akaSenshu');
+    const aoSenshuBadge = document.getElementById('aoSenshu');
+    const akaPenaltyDisplay = document.getElementById('akaPenaltyDisplay');
+    const aoPenaltyDisplay = document.getElementById('aoPenaltyDisplay');
+    const endBoutBtn = document.getElementById('endBout');
+    const resetBoutBtn = document.getElementById('resetBout');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const hanteiBtn = document.getElementById('hanteiBtn');
+    const setSenshuAkaBtn = document.getElementById('setSenshuAka');
+    const setSenshuAoBtn = document.getElementById('setSenshuAo');
+    const removeSenshuBtn = document.getElementById('removeSenshu');
+    
+    // Modals
+    const winnerModal = new bootstrap.Modal(document.getElementById('winnerModal'));
+    const hanteiModal = new bootstrap.Modal(document.getElementById('hanteiModal'));
+    const settingsModal = new bootstrap.Modal(document.getElementById('settingsModal'));
+    
+    // Score Buttons
+    document.querySelectorAll('.score-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        const competitor = this.getAttribute('data-competitor');
+        const points = parseInt(this.getAttribute('data-score'));
+        
+        if (competitor === 'aka') {
+          akaScore += points;
+          akaScoreDisplay.textContent = akaScore;
+          akaScoreDisplay.classList.add('pulse');
+          setTimeout(() => akaScoreDisplay.classList.remove('pulse'), 500);
+          
+          // Check for Senshu (first unanswered point)
+          if (akaScore === points && aoScore === 0 && !akaSenshuActive && !aoSenshuActive) {
+            // Can't set Senshu in the first/last 15 seconds
+            const elapsedTime = getTimerMaxValue() - remainingTime;
+            const remainingSeconds = remainingTime;
+            if (elapsedTime >= 15 && remainingSeconds >= 15) {
+              akaSenshuActive = true;
+              akaSenshuBadge.classList.remove('d-none');
+            }
+          }
+        } else if (competitor === 'ao') {
+          aoScore += points;
+          aoScoreDisplay.textContent = aoScore;
+          aoScoreDisplay.classList.add('pulse');
+          setTimeout(() => aoScoreDisplay.classList.remove('pulse'), 500);
+          
+          // Check for Senshu (first unanswered point)
+          if (aoScore === points && akaScore === 0 && !aoSenshuActive && !akaSenshuActive) {
+            // Can't set Senshu in the first/last 15 seconds
+            const elapsedTime = getTimerMaxValue() - remainingTime;
+            const remainingSeconds = remainingTime;
+            if (elapsedTime >= 15 && remainingSeconds >= 15) {
+              aoSenshuActive = true;
+              aoSenshuBadge.classList.remove('d-none');
+            }
+          }
+        }
+      });
+    });
+    
+    // Penalty Buttons
+    document.querySelectorAll('.penalty-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        const competitor = this.getAttribute('data-competitor');
+        const penalty = this.getAttribute('data-penalty');
+        
+        if (competitor === 'aka') {
+          akaPenalties.push(penalty);
+          renderPenalties(akaPenaltyDisplay, akaPenalties);
+          
+          // If C2 infraction in last 15 seconds, remove Senshu
+          if (penalty === 'chui2' && remainingTime <= 15 && akaSenshuActive) {
+            akaSenshuActive = false;
+            akaSenshuBadge.classList.add('d-none');
+          }
+        } else if (competitor === 'ao') {
+          aoPenalties.push(penalty);
+          renderPenalties(aoPenaltyDisplay, aoPenalties);
+          
+          // If C2 infraction in last 15 seconds, remove Senshu
+          if (penalty === 'chui2' && remainingTime <= 15 && aoSenshuActive) {
+            aoSenshuActive = false;
+            aoSenshuBadge.classList.add('d-none');
+          }
+        }
+      });
+    });
+    
+    // Timer Controls
+    startTimerBtn.addEventListener('click', function() {
+      if (!timerRunning) {
+        timerInterval = setInterval(updateTimer, 1000);
+        timerRunning = true;
+        startTimerBtn.disabled = true;
+        stopTimerBtn.disabled = false;
+      }
+    });
+    
+    stopTimerBtn.addEventListener('click', function() {
+      if (timerRunning) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        startTimerBtn.disabled = false;
+        stopTimerBtn.disabled = true;
+      }
+    });
+    
+    resetTimerBtn.addEventListener('click', function() {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      startTimerBtn.disabled = false;
+      stopTimerBtn.disabled = true;
+      
+      // Reset based on category
+      remainingTime = getTimerMaxValue();
+      updateTimerDisplay();
+    });
+    
+    // End Bout Button
+    endBoutBtn.addEventListener('click', function() {
+      // Stop timer if running
+      if (timerRunning) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        startTimerBtn.disabled = false;
+        stopTimerBtn.disabled = true;
+      }
+      
+      // Determine winner
+      determineWinner();
+    });
+    
+    // Reset Bout Button
+    resetBoutBtn.addEventListener('click', function() {
+      // Reset scores
+      akaScore = 0;
+      aoScore = 0;
+      akaScoreDisplay.textContent = '0';
+      aoScoreDisplay.textContent = '0';
+      
+      // Reset Senshu
+      akaSenshuActive = false;
+      aoSenshuActive = false;
+      akaSenshuBadge.classList.add('d-none');
+      aoSenshuBadge.classList.add('d-none');
+      
+      // Reset penalties
+      akaPenalties = [];
+      aoPenalties = [];
+      renderPenalties(akaPenaltyDisplay, akaPenalties);
+      renderPenalties(aoPenaltyDisplay, aoPenalties);
+      
+      // Reset timer
+      clearInterval(timerInterval);
+      timerRunning = false;
+      startTimerBtn.disabled = false;
+      stopTimerBtn.disabled = true;
+      remainingTime = getTimerMaxValue();
+      updateTimerDisplay();
+    });
+    
+    // Settings Button
+    settingsBtn.addEventListener('click', function() {
+      // Populate current settings
+      document.getElementById('akaNameInput').value = document.getElementById('akaName').textContent;
+      document.getElementById('akaCountryInput').value = document.getElementById('akaCountry').textContent;
+      document.getElementById('aoNameInput').value = document.getElementById('aoName').textContent;
+      document.getElementById('aoCountryInput').value = document.getElementById('aoCountry').textContent;
+      
+      // Show the modal
+      settingsModal.show();
+    });
+    
+    // Save Settings
+    document.getElementById('saveSettings').addEventListener('click', function() {
+      // Update competitor info
+      document.getElementById('akaName').textContent = document.getElementById('akaNameInput').value;
+      document.getElementById('akaCountry').textContent = document.getElementById('akaCountryInput').value.toUpperCase();
+      document.getElementById('aoName').textContent = document.getElementById('aoNameInput').value;
+      document.getElementById('aoCountry').textContent = document.getElementById('aoCountryInput').value.toUpperCase();
+      
+      // Update match info
+      const category = document.getElementById('categorySelect').value;
+      const weight = document.getElementById('weightSelect').value;
+      const matchType = document.getElementById('matchType').value;
+      const matchNumber = document.getElementById('matchNumber').value;
+      
+      document.getElementById('categoryDisplay').textContent = getCategoryDisplayName(category) + ' ' + weight;
+      document.getElementById('matchDisplay').textContent = getMatchTypeName(matchType) + ' #' + matchNumber;
+      
+      // Update timer based on category
+      matchCategory = category;
+      remainingTime = getTimerMaxValue();
+      updateTimerDisplay();
+      
+      // Hide modal
+      settingsModal.hide();
+    });
+    
+    // Hantei Button
+    hanteiBtn.addEventListener('click', function() {
+      // Update competitor names in the Hantei modal
+      document.getElementById('hanteiAkaName').textContent = document.getElementById('akaName').textContent + ' (' + document.getElementById('akaCountry').textContent + ')';
+      document.getElementById('hanteiAoName').textContent = document.getElementById('aoName').textContent + ' (' + document.getElementById('aoCountry').textContent + ')';
+      
+      // Reset votes
+      document.getElementById('akaVotes').value = 0;
+      document.getElementById('aoVotes').value = 0;
+      
+      // Show the modal
+      hanteiModal.show();
+    });
+    
+    // Confirm Hantei Decision
+    document.getElementById('confirmHantei').addEventListener('click', function() {
+      const akaVotes = parseInt(document.getElementById('akaVotes').value);
+      const aoVotes = parseInt(document.getElementById('aoVotes').value);
+      
+      if (akaVotes > aoVotes) {
+        // AKA wins by Hantei
+        showWinnerModal('aka', 'By Hantei Decision');
+      } else if (aoVotes > akaVotes) {
+        // AO wins by Hantei
+        showWinnerModal('ao', 'By Hantei Decision');
+      } else {
+        // It's a tie - this shouldn't normally happen in real WKF rules
+        alert('Votes are equal. Please adjust the votes to determine a winner.');
+        return;
+      }
+      
+      hanteiModal.hide();
+    });
+    
+    // Senshu Controls
+    setSenshuAkaBtn.addEventListener('click', function() {
+      akaSenshuActive = true;
+      aoSenshuActive = false;
+      akaSenshuBadge.classList.remove('d-none');
+      aoSenshuBadge.classList.add('d-none');
+    });
+    
+    setSenshuAoBtn.addEventListener('click', function() {
+      aoSenshuActive = true;
+      akaSenshuActive = false;
+      aoSenshuBadge.classList.remove('d-none');
+      akaSenshuBadge.classList.add('d-none');
+    });
+    
+    removeSenshuBtn.addEventListener('click', function() {
+      akaSenshuActive = false;
+      aoSenshuActive = false;
+      akaSenshuBadge.classList.add('d-none');
+      aoSenshuBadge.classList.add('d-none');
+    });
+    
+    // SHIKKAKU buttons
+    document.getElementById('shikkakuAka').addEventListener('click', function() {
+      if(confirm('Are you sure you want to disqualify AKA (SHIKKAKU)?')) {
+        showWinnerModal('ao', 'By SHIKKAKU');
+      }
+    });
+    
+    document.getElementById('shikkakuAo').addEventListener('click', function() {
+      if(confirm('Are you sure you want to disqualify AO (SHIKKAKU)?')) {
+        showWinnerModal('aka', 'By SHIKKAKU');
+      }
+    });
+    
+    // Update Bracket Button in Winner Modal
+    document.getElementById('updateBracketBtn').addEventListener('click', function() {
+      // Hide winner modal
+      winnerModal.hide();
+      
+      // Switch to bracket tab
+      document.getElementById('bracket-tab').click();
+      
+      // This would update the bracket in a full implementation
+      alert('In a complete implementation, this would update the tournament bracket with the match result.');
+    });
+    
+    // Bracket Settings Form
+    document.getElementById('bracketSettingsForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // In a complete implementation, this would generate a real bracket based on the form values
+      document.getElementById('bracketDisplay').classList.add('d-none');
+      document.getElementById('sampleBracket').classList.remove('d-none');
+      document.getElementById('medalsDisplay').classList.remove('d-none');
+    });
+    
+    // Timer Functions
+    function updateTimer() {
+      if (remainingTime > 0) {
+        remainingTime--;
+        updateTimerDisplay();
+      } else {
+        // Time's up
+        clearInterval(timerInterval);
+        timerRunning = false;
+        startTimerBtn.disabled = false;
+        stopTimerBtn.disabled = true;
+        alert('Time is up!');
+      }
+    }
+    
+    function updateTimerDisplay() {
+      const minutes = Math.floor(remainingTime / 60);
+      const seconds = remainingTime % 60;
+      timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+    
+    // Helper Functions
+    function renderPenalties(container, penalties) {
+      container.innerHTML = '';
+      
+      for (const penalty of penalties) {
+        const penaltyIndicator = document.createElement('div');
+        penaltyIndicator.className = 'penalty-indicator';
+        
+        switch (penalty) {
+          case 'chui1':
+            penaltyIndicator.textContent = 'C1';
+            break;
+          case 'chui2':
+            penaltyIndicator.textContent = 'C2';
+            break;
+          case 'chui3':
+            penaltyIndicator.textContent = 'C3';
+            break;
+          case 'hansoku-chui':
+            penaltyIndicator.textContent = 'HC';
+            penaltyIndicator.style.backgroundColor = 'var(--danger)';
+            break;
+        }
+        
+        container.appendChild(penaltyIndicator);
+      }
+    }
+    
+    function determineWinner() {
+      // Check for disqualification
+      if (akaPenalties.includes('hansoku')) {
+        showWinnerModal('ao', 'By Hansoku');
+        return;
+      }
+      
+      if (aoPenalties.includes('hansoku')) {
+        showWinnerModal('aka', 'By Hansoku');
+        return;
+      }
+      
+      // Check scores
+      if (akaScore > aoScore) {
+        showWinnerModal('aka', 'By Points');
+      } else if (aoScore > akaScore) {
+        showWinnerModal('ao', 'By Points');
+      } else {
+        // Scores are tied
+        if (akaSenshuActive) {
+          showWinnerModal('aka', 'By Senshu');
+        } else if (aoSenshuActive) {
+          showWinnerModal('ao', 'By Senshu');
+        } else {
+          // No Senshu advantage, trigger Hantei
+          hanteiBtn.click();
+        }
+      }
+    }
+    
+    function showWinnerModal(winner, method) {
+      const winnerColor = document.getElementById('winnerColor');
+      const winnerName = document.getElementById('winnerName');
+      const winnerScore = document.getElementById('winnerScore');
+      const loserScore = document.getElementById('loserScore');
+      const winnerMethod = document.getElementById('winnerMethod');
+      
+      if (winner === 'aka') {
+        winnerColor.className = 'badge bg-danger mb-2 p-2';
+        winnerColor.textContent = 'AKA WINNER';
+        winnerName.textContent = document.getElementById('akaName').textContent + ' (' + document.getElementById('akaCountry').textContent + ')';
+        winnerScore.textContent = akaScore;
+        loserScore.textContent = aoScore;
+      } else {
+        winnerColor.className = 'badge bg-primary mb-2 p-2';
+        winnerColor.textContent = 'AO WINNER';
+        winnerName.textContent = document.getElementById('aoName').textContent + ' (' + document.getElementById('aoCountry').textContent + ')';
+        winnerScore.textContent = aoScore;
+        loserScore.textContent = akaScore;
+      }
+      
+      winnerMethod.textContent = method;
+      winnerModal.show();
+    }
+    
+    function getTimerMaxValue() {
+      switch (matchCategory) {
+        case 'senior':
+        case 'u21':
+          return 180; // 3:00
+        case 'junior':
+        case 'cadet':
+          return 120; // 2:00
+        case 'u14':
+          return 90; // 1:30
+        default:
+          return 180; // Default to 3:00
+      }
+    }
+    
+    function getCategoryDisplayName(category) {
+      switch (category) {
+        case 'senior':
+          return 'Senior';
+        case 'u21':
+          return 'Under 21';
+        case 'junior':
+          return 'Junior';
+        case 'cadet':
+          return 'Cadet';
+        case 'u14':
+          return 'Under 14';
+        default:
+          return 'Senior';
+      }
+    }
+    
+    function getMatchTypeName(matchType) {
+      switch (matchType) {
+        case 'elimination':
+          return 'Elimination Round';
+        case 'quarterfinal':
+          return 'Quarter Final';
+        case 'semifinal':
+          return 'Semi Final';
+        case 'final':
+          return 'Final';
+        case 'bronze':
+          return 'Bronze Medal Match';
+        default:
+          return 'Match';
+      }
+    }
+    
+    // Initialize Timer Display
+    updateTimerDisplay();
+    
+    // Initialize localStorage if needed
+    // This would store bout data, bracket progression, etc. in a full implementation
+    if (!localStorage.getItem('kumiteAppData')) {
+      localStorage.setItem('kumiteAppData', JSON.stringify({
+        currentMatch: {
+          category: 'senior',
+          weight: '-75kg',
+          matchType: 'quarterfinal',
+          matchNumber: 2
+        },
+        bracketData: {},
+        boutHistory: []
+      }));
+    }
+    
+    // External Scoreboard Button Handler
+    document.getElementById('externalScoreboardBtn').addEventListener('click', function() {
+      window.open('external_scoreboard.html', '_blank', 'width=800,height=600');
+    });
+
+    document.getElementById('externalScoreboardBtnBracket').addEventListener('click', function() {
+      window.open('external_scoreboard.html', '_blank', 'width=800,height=600');
+    });
+
+    // Store current state in localStorage for external scoreboard to use
+    function updateExternalScoreboardData() {
+      const scoreboardData = {
+        aka: {
+          name: document.getElementById('akaName').textContent,
+          country: document.getElementById('akaCountry').textContent,
+          score: akaScore,
+          senshu: akaSenshuActive,
+          penalties: akaPenalties
+        },
+        ao: {
+          name: document.getElementById('aoName').textContent,
+          country: document.getElementById('aoCountry').textContent,
+          score: aoScore,
+          senshu: aoSenshuActive,
+          penalties: aoPenalties
+        },
+        timer: remainingTime,
+        category: document.getElementById('categoryDisplay').textContent,
+        match: document.getElementById('matchDisplay').textContent
+      };
+      
+      localStorage.setItem('externalScoreboardData', JSON.stringify(scoreboardData));
+    }
+
+    // Update external data whenever scores or penalties change
+    document.querySelectorAll('.score-btn, .penalty-btn').forEach(button => {
+      const originalClick = button.onclick;
+      button.onclick = function() {
+        if (originalClick) originalClick.apply(this, arguments);
+        updateExternalScoreboardData();
+      };
+    });
+
+    // Also update when timer changes
+    const originalUpdateTimer = updateTimer;
+    updateTimer = function() {
+      originalUpdateTimer.apply(this, arguments);
+      updateExternalScoreboardData();
+    };
+
+    // Initialize external data
+    updateExternalScoreboardData();
+  });
+</script>
+
+<script id="external-scoreboard-script">
+  document.addEventListener('DOMContentLoaded', function() {
+    // Function to update the scoreboard display
+    function updateScoreboard(data) {
+      if (!data) return;
+      
+      // Update event info
+      document.getElementById('categoryName').textContent = data.category || 'Senior Male -75kg';
+      
+      // Extract tatami number from match data
+      const matchText = data.match || 'Quarter Final #2';
+      document.getElementById('tatamiDisplay').textContent = 'Tatami ' + (matchText.match(/\d+/) || ['1'])[0];
+      
+      // Update AKA info
+      if (data.aka) {
+        document.getElementById('akaName').textContent = data.aka.name || 'John Smith';
+        document.getElementById('akaCountry').textContent = data.aka.country || 'USA';
+        document.getElementById('akaCode').textContent = (data.aka.country || 'AKA').substring(0, 3);
+        document.getElementById('akaScore').textContent = data.aka.score || '0';
+        
+        // Update Senshu status
+        document.getElementById('akaSenshu').style.display = data.aka.senshu ? 'flex' : 'none';
+        
+        // Update penalties
+        updatePenalties('aka', data.aka.penalties || []);
+      }
+      
+      // Update AO info
+      if (data.ao) {
+        document.getElementById('aoName').textContent = data.ao.name || 'Carlos Mendez';
+        document.getElementById('aoCountry').textContent = data.ao.country || 'ESP';
+        document.getElementById('aoCode').textContent = (data.ao.country || 'AO').substring(0, 3);
+        document.getElementById('aoScore').textContent = data.ao.score || '0';
+        
+        // Update Senshu status
+        document.getElementById('aoSenshu').style.display = data.ao.senshu ? 'flex' : 'none';
+        
+        // Update penalties
+        updatePenalties('ao', data.ao.penalties || []);
+      }
+      
+      // Update timer
+      if (data.timer !== undefined) {
+        const minutes = Math.floor(data.timer / 60);
+        const seconds = data.timer % 60;
+        document.getElementById('timerDisplay').textContent = `${minutes}:${seconds.toString().padStart(2, '0')} -1`;
+      }
+    }
+    
+    // Function to update penalty indicators
+    function updatePenalties(competitor, penalties) {
+      // Reset all penalties first
+      document.getElementById(`${competitor}C1`).className = 'penalty-badge inactive';
+      document.getElementById(`${competitor}C2`).className = 'penalty-badge inactive';
+      document.getElementById(`${competitor}C3`).className = 'penalty-badge inactive';
+      document.getElementById(`${competitor}HC`).className = 'penalty-badge inactive';
+      document.getElementById(`${competitor}H`).className = 'penalty-badge inactive';
+      
+      // Add active classes based on penalties array
+      penalties.forEach(penalty => {
+        switch (penalty) {
+          case 'chui1':
+            document.getElementById(`${competitor}C1`).className = 'penalty-badge active';
+            break;
+          case 'chui2':
+            document.getElementById(`${competitor}C2`).className = 'penalty-badge active';
+            break;
+          case 'chui3':
+            document.getElementById(`${competitor}C3`).className = 'penalty-badge active';
+            break;
+          case 'hansoku-chui':
+            document.getElementById(`${competitor}HC`).className = 'penalty-badge active';
+            break;
+          case 'hansoku':
+            document.getElementById(`${competitor}H`).className = 'penalty-badge active';
+            break;
+        }
+      });
+    }
+    
+    // Initial data load from localStorage
+    try {
+      const data = JSON.parse(localStorage.getItem('externalScoreboardData'));
+      updateScoreboard(data);
+    } catch (e) {
+      console.error('Error loading scoreboard data:', e);
+    }
+    
+    // Listen for localStorage changes
+    window.addEventListener('storage', function(e) {
+      if (e.key === 'externalScoreboardData') {
+        try {
+          const data = JSON.parse(e.newValue);
+          updateScoreboard(data);
+        } catch (e) {
+          console.error('Error updating scoreboard data:', e);
+        }
+      }
+    });
+  });
+</script>
+  </body>
+</html>
