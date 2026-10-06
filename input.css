@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { font-family: 'Roboto', sans-serif; }
+.font-oswald { font-family: 'Oswald', sans-serif; }
+
+/* Senshu Triangle */
+.senshu-triangle {
+    position: absolute; bottom: 0; left: 0; width: 40%; height: 40%;
+    background-color: #22c55e; clip-path: polygon(0 0, 0% 100%, 100% 100%); z-index: 10;
+}
+.senshu-text {
+    position: absolute; bottom: 2px; left: 4px; font-size: 1.2rem; font-weight: bold; color: white; z-index: 11; line-height: 1;
+}
+
+/* UI Utilities */
+.kata-input-box { @apply border-4 border-black rounded-lg p-2 w-full text-center text-2xl font-bold outline-none focus:ring-4 focus:ring-blue-300; }
+select.kata-input-box {
+    appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23000000%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat; background-position: right 0.7rem top 50%; background-size: 0.65rem auto;
+}
+
+/* Buttons */
+.btn-solid-red { @apply bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition text-sm tracking-wide; }
+.btn-solid-blue { @apply bg-[#3b82f6] hover:bg-[#2563eb] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition text-sm tracking-wide; }
+.btn-solid-yellow { @apply bg-[#fbbf24] hover:bg-[#f59e0b] text-gray-900 font-bold py-3 rounded shadow text-center uppercase w-full transition text-xs; }
+.btn-solid-purple { @apply bg-[#a855f7] hover:bg-[#9333ea] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition flex items-center justify-center gap-2 text-sm; }
+.btn-solid-grey { @apply bg-[#4b5563] hover:bg-[#374151] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition text-sm; }
+.btn-solid-indigo { @apply bg-[#4f46e5] hover:bg-[#4338ca] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition flex items-center justify-center gap-2 text-sm; }
+.btn-solid-darkred { @apply bg-[#991b1b] hover:bg-[#7f1d1d] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition flex items-center justify-center gap-2 text-sm; }
+.btn-solid-blue-dark { @apply bg-[#1d4ed8] hover:bg-[#1e40af] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition text-sm; }
+.btn-solid-slate { @apply bg-[#334155] hover:bg-[#1e293b] text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition text-sm; }
+.btn-solid-orange { @apply bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded shadow text-center uppercase w-full mb-2 transition flex items-center justify-center gap-2 text-sm; }
+.btn-hansoku { @apply bg-black hover:bg-gray-800 text-white font-bold py-2 rounded shadow text-center uppercase w-full mt-2 transition text-xs border border-gray-600; }
+.time-adjust-btn { @apply bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded px-2 py-1 text-xs; }
+
+.control-header { @apply text-black font-bold text-lg mb-3 uppercase border-b-2 border-gray-200 pb-1; }
+.scoreboard-mode body { overflow: hidden; }
+
+/* Custom Scrollbar */
+.dropdown-scroll::-webkit-scrollbar { width: 8px; }
+.dropdown-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+.dropdown-scroll::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+.dropdown-scroll::-webkit-scrollbar-thumb:hover { background: #555; }
+
+/* Modal & Input */
+.modal-enter-active, .modal-leave-active { transition: opacity 0.3s ease; }
+.modal-enter-from, .modal-leave-to { opacity: 0; }
+.input-disabled { @apply bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200; }
+
+/* Brackets */
+.bracket-scroll-area { display: flex; padding: 40px; gap: 0; }
+.round-column { display: flex; flex-direction: column; justify-content: space-around; min-width: 300px; position: relative; }
+.match-pair { display: flex; flex-direction: column; justify-content: center; position: relative; flex-grow: 1; padding: 10px 40px 10px 0; }
+.match-card { background: white; border: 1px solid #cbd5e1; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); width: 100%; position: relative; z-index: 2; cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; }
+.match-card:hover { transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-color: #94a3b8; }
+.connector-vertical { position: absolute; right: 20px; top: 25%; bottom: 25%; width: 2px; background-color: #94a3b8; border-top-right-radius: 4px; border-bottom-right-radius: 4px; }
+.match-pair::before { content: ''; position: absolute; right: 20px; top: 25%; width: 20px; height: 2px; background-color: #94a3b8; }
+.match-pair::after { content: ''; position: absolute; right: 20px; bottom: 25%; width: 20px; height: 2px; background-color: #94a3b8; }
+.connector-next { position: absolute; right: 0; top: 50%; width: 20px; height: 2px; background-color: #94a3b8; transform: translateY(-50%); }
+.slot-aka { border-left: 6px solid #ef4444; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; }
+.slot-ao { border-left: 6px solid #3b82f6; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center; }
+.slot-winner { background-color: #f0fdf4; }
+.slot-winner .comp-name { font-weight: 800; color: #000; }
+.comp-name { font-size: 0.9rem; font-weight: 500; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+.comp-score { font-family: 'Roboto', monospace; font-weight: bold; color: #0f172a; }
+.winner-box { background: #fffbeb; border: 2px solid #fbbf24; padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.table-header { @apply px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase tracking-wider; }
+.table-cell { @apply px-4 py-2 whitespace-nowrap text-sm text-gray-900; }
+
+/* Judge Mobile UI */
+.judge-btn-num { @apply w-full h-16 bg-gray-100 rounded-lg text-2xl font-bold text-gray-800 shadow-sm border border-gray-300 active:bg-blue-100 active:scale-95 transition; }

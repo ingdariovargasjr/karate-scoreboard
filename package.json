@@ -1,5 +1,60 @@
 {
+  "name": "karate-scoreboard-electron",
+  "version": "1.3.1",
+  "description": "SISTEMA DE GESTION DE COMPETENCIAS DE AKRATE PARA LA ASOCIACION DE KARATE Y ARTES MARCIALES DE TAMAULIPAS, AFILIADO A LA FEDERACION KARATE MEXICO",
+  "keywords": [],
+  "license": "ISC",
+  "author": "me",
+  "type": "commonjs",
+  "main": "main.js",
+  "scripts": {
+    "build:css": "npx tailwindcss -i ./input.css -o ./css/output.css --minify",
+    "start": "npm run build:css && electron-forge start",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "package": "npm run build:css && electron-forge package",
+    "make": "npm run build:css && electron-forge make",
+    "dist": "npm run build:css && electron-builder"
+  },
   "dependencies": {
-    "firebase": "^12.6.0"
+    "@fontsource/oswald": "^5.2.8",
+    "@fontsource/roboto": "^5.2.10",
+    "@fortawesome/fontawesome-free": "^7.2.0",
+    "electron-squirrel-startup": "^1.0.1",
+    "firebase": "^12.6.0",
+    "vue": "^3.5.34"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^7.11.1",
+    "@electron-forge/maker-deb": "^7.11.1",
+    "@electron-forge/maker-rpm": "^7.11.1",
+    "@electron-forge/maker-squirrel": "^7.11.1",
+    "@electron-forge/maker-zip": "^7.11.1",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.11.1",
+    "@electron-forge/plugin-fuses": "^7.11.1",
+    "@electron/fuses": "^1.8.0",
+    "autoprefixer": "^10.5.0",
+    "electron": "^41.5.0",
+    "postcss": "^8.5.14",
+    "tailwindcss": "^3.4.19"
+  },
+  "build": {
+    "appId": "com.akt.karatescorebard",
+    "win": {
+      "target": "nsis",
+      "icon": "./28-logo.ico"
+    }
+  },
+  "packagerConfig": {
+    "icon": "./28-logo.ico"
+  },
+  "nsis": {
+    "icon": "./28-logo.ico",
+    "oneClick": false,
+    "installerIcon": "./28-logo.ico",
+    "uninstallerIcon": "./28-logo.ico",
+    "uninstallerDisplayName": "KARATE SCOREBOARD UNNINSTALLER",
+    "installerLanguage": "es",
+    "license": "LICENSE.md",
+    "allowToChangeInstallationDirectory": true
   }
 }
