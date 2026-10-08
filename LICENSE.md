@@ -2,7 +2,7 @@
 
 ## 1. Titularidad
 
-El presente software (en adelante, el “Software”) es propiedad exclusiva del desarrollador y propietario del codigo **STAR PLATIMUN DEV** a cargo del**Ingeniero Darío Maldonado Vargas** y de la **Asociación de Karate y Artes Marciales del Estado de Tamaulipas** prescidida por el sensei **Ing Alfredo Ramos Ramirez** y como encargado de la Comision de Arbitraje del Estado de Tamaulipas el sensei **Gabriel Jesus Rivera de Leon**, afiliada a la **Federación Karate México** (en adelante, los “Titulares”).
+El presente software (en adelante, el “Software”) es propiedad exclusiva del desarrollador y propietario del codigo **BROKEN CODE** a cargo del** Ingeniero Darío Maldonado Vargas** y de la **Asociación de Karate y Artes Marciales del Estado de Tamaulipas** prescidida por el sensei **Ing Alfredo Ramos Ramirez** y como encargado de la Comision de Arbitraje del Estado de Tamaulipas el sensei **Gabriel Jesus Rivera de Leon**, afiliada a la **Federación Karate México** (en adelante, los “Titulares”).
 
 Todos los derechos, incluyendo pero no limitados a derechos patrimoniales, de autor, propiedad industrial, secretos comerciales y cualquier otro derecho de propiedad intelectual, pertenecen única y exclusivamente a los Titulares.
 
@@ -79,7 +79,7 @@ El uso, instalación, copia o acceso al Software implica la aceptación total, e
 ---
 
 © 2026 Todos los derechos reservados.
-@STARPLATIMUNDEV
+@BROKENCODE
 Ingeniero Darío Maldonado Vargas  
 Asociación de Karate del Estado de Tamaulipas  
 Afiliada a la Federación Karate México
