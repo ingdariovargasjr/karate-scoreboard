@@ -6,6 +6,7 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 1800,
     height: 720,
+    icon: path.join(__dirname, '28-logo.ico'),
     webPreferences: {
       nodeIntegration: true // Careful with this in production for security!
     }

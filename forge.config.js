@@ -1,15 +1,38 @@
 const { FusesPlugin } = require('@electron-forge/plugin-fuses');
 const { FuseV1Options, FuseVersion } = require('@electron/fuses');
+const path = require('path');
+
+const certificateFile = process.env.WINDOWS_CERTIFICATE_FILE;
+const certificatePassword = process.env.WINDOWS_CERTIFICATE_PASSWORD;
+
+if (certificateFile && !certificatePassword) {
+  throw new Error('WINDOWS_CERTIFICATE_PASSWORD es obligatorio cuando se define WINDOWS_CERTIFICATE_FILE.');
+}
+
+const windowsSigningConfig = certificateFile
+  ? {
+      certificateFile: path.resolve(certificateFile),
+      certificatePassword,
+    }
+  : {};
 
 module.exports = {
   packagerConfig: {
     asar: true,
+    icon: path.resolve(__dirname, '28-logo'),
+    executableName: 'karate-scoreboard-akt',
   },
   rebuildConfig: {},
   makers: [
     {
       name: '@electron-forge/maker-squirrel',
-      config: {},
+      config: {
+        name: 'karate-scoreboard-akt',
+        authors: 'Asociación de Karate y Artes Marciales de Tamaulipas',
+        description: 'Marcador y gestor de competencias de karate AKT',
+        setupIcon: path.resolve(__dirname, '28-logo.ico'),
+        ...windowsSigningConfig,
+      },
     },
     {
       name: '@electron-forge/maker-zip',
