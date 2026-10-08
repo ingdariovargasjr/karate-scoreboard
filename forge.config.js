@@ -1,15 +1,23 @@
 const { FusesPlugin } = require('@electron-forge/plugin-fuses');
 const { FuseV1Options, FuseVersion } = require('@electron/fuses');
+const path = require('path');
 
 module.exports = {
   packagerConfig: {
     asar: true,
+    icon: path.resolve(__dirname, '28-logo'),
+    executableName: 'karate-scoreboard-akt',
   },
   rebuildConfig: {},
   makers: [
     {
       name: '@electron-forge/maker-squirrel',
-      config: {},
+      config: {
+        name: 'karate-scoreboard-akt',
+        authors: 'Asociación de Karate y Artes Marciales de Tamaulipas',
+        description: 'Marcador y gestor de competencias de karate AKT',
+        setupIcon: path.resolve(__dirname, '28-logo.ico'),
+      },
     },
     {
       name: '@electron-forge/maker-zip',

@@ -1,0 +1,80 @@
+OBSERVACIONES MARCADOR - TEXTO Y EVIDENCIA VISUAL
+
+Fuente: OBSERVACIONES MARCADOR.pdf (3 páginas).
+El PDF original es la fuente de referencia. Este TXT es una extracción derivada.
+Las secciones A conservan el texto extraído, incluidos errores originales.
+La sección B describe anotaciones visuales; no son requisitos adicionales ni decisiones aprobadas.
+Los textos de la interfaz dentro de las capturas no forman parte de la extracción automática. Consultar los PNG para la evidencia completa.
+
+A. TEXTO EXTRAÍDO DEL PDF
+
+--- PÁGINA 1 ---
+
+                                                     INVERTIR COLORES
+
+
+
+
+   BOTÓN SENSHU             INVERTIR ORDEN
+                                                                                 BORRA
+
+
+
+
+                                             CRONOMETRO DEL MÉDICO (3 MINUTOS)
+ BOTÓN QUE DIGA -1
+                                                                                  BORRA
+REDUCIR EL TAMAÑO DE LOS
+ BOTONES DE PENALTIES,
+CON QUE DIGAN C1, C2, C3,
+  HC, H Y S ES SUFICIENTE
+
+
+--- PÁGINA 2 ---
+
+C1    CAMBIAR A COLOR AMARILLO PARA QUE SE
+     DISTINGAN MÁS FÁCIL Y HACER MÁS GRANDE
+
+
+
+
+                           CORREGIR COLORES DEL
+                               CRONOMETRO:
+                              PAUSA; BLANCO
+                            CORRIEN: AMARILLO
+                            ATOSHIBARAKU; ROJO
+
+
+--- PÁGINA 3 ---
+
+    AGREGAR                                        CORREGIR EL
+CRONOMETRO KATA                                 MARCADOR EXTERNO,
+  EQUIPO 5 MIN                                     QUE SE VEA EL
+                                                NÚMERO DE VOTOS DE
+                                                CADA ATLETA, SIMILAR
+                                                      A ESTO
+                  6.5         6.5   6.5   6.5
+                  6.5   6.5
+
+B. CONTEXTO VISUAL VERIFICADO EN LAS TRES PÁGINAS
+
+PÁGINA 1 - KUMITE, OPERADOR
+- "INVERTIR COLORES": flecha horizontal entre los paneles AKA (rojo, izquierda) y AO (azul, derecha). El alcance exacto del intercambio requiere aclaración.
+- "BOTÓN SENSHU": recuadro verde situado sobre los controles de puntuación del lado izquierdo.
+- "INVERTIR ORDEN": flecha vertical junto a YUKO +1, WAZA +2 e IPPON +3 del lado izquierdo.
+- "BOTÓN QUE DIGA -1": recuadro rojo debajo de los botones de puntuación del lado izquierdo.
+- Reducir tamaño de botones de penalizaciones y usar C1, C2, C3, HC, H y S.
+- "CRONOMETRO DEL MÉDICO (3 MINUTOS)": recuadro central debajo de HANTEI (DECISION).
+- Dos flechas "BORRA" señalan los rótulos AO SCORE y AO PENALTIES. No señalan explícitamente la eliminación de los botones ni de sus datos.
+
+PÁGINA 2 - KUMITE, MARCADOR EXTERNO
+- Flecha hacia los indicadores de penalización, con C1 amarillo y grande como ejemplo.
+- Colores solicitados del cronómetro: pausa blanco; "CORRIEN" amarillo; "ATOSHIBARAKU" rojo. Se conserva la redacción original en la sección A.
+
+PÁGINA 3 - KATA
+- Agregar cronómetro Kata equipo de 5 minutos; anotación junto al control INICIAR (35s).
+- Corregir marcador externo para que se vea el "NÚMERO DE VOTOS DE CADA ATLETA", similar al ejemplo.
+- El ejemplo muestra dos filas de calificaciones bajo J1 a J5, con recuadros rojos y azules y valores como 6.5. Aclarar si "votos" se refiere a calificaciones individuales o a conteos.
+- Anotación adicional "BORRA", integrada en la captura y ausente de la extracción automática: flecha hacia el área Total / 18.30. El alcance funcional de esta eliminación requiere aclaración.
+
+No se han inferido reglas de puntuación, controles de cronómetro, límites de tiempo de Atoshi Baraku ni contratos de sincronización.

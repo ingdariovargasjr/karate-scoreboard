@@ -14,6 +14,46 @@ body { font-family: 'Roboto', sans-serif; }
     position: absolute; bottom: 2px; left: 4px; font-size: 1.2rem; font-weight: bold; color: white; z-index: 11; line-height: 1;
 }
 
+/* TV penalty indicators: these reflect state; they are not operator buttons. */
+.tv-penalty-indicator {
+    width: 3rem;
+    height: 3rem;
+    flex: 0 0 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ffc107;
+    border-radius: 0.375rem;
+    background: #202529;
+    color: #ffc107;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1;
+}
+.tv-penalty-indicator--active {
+    background: #ffc107;
+    color: #000;
+    animation: tv-penalty-ignite 550ms ease-out;
+}
+@keyframes tv-penalty-ignite {
+    0% { background: #202529; color: #ffc107; box-shadow: 0 0 0 rgba(255, 193, 7, 0); transform: scale(1); }
+    45% { background: #ffc107; color: #000; box-shadow: 0 0 18px 6px rgba(255, 193, 7, 0.75); transform: scale(1.1); }
+    100% { background: #ffc107; color: #000; box-shadow: 0 0 0 rgba(255, 193, 7, 0); transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .tv-penalty-indicator--active { animation: none; }
+}
+
+/* Kata: alert only while a timer is running in its last 15 seconds. */
+.kata-timer-warning { animation: kata-timer-blink 800ms ease-in-out infinite; }
+@keyframes kata-timer-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .kata-timer-warning { animation: none; }
+}
+
 /* UI Utilities */
 .kata-input-box { @apply border-4 border-black rounded-lg p-2 w-full text-center text-2xl font-bold outline-none focus:ring-4 focus:ring-blue-300; }
 select.kata-input-box {

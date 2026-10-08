@@ -1,6 +1,6 @@
 # Karate Scoreboard AKT
 
-Aplicación de escritorio para organizar competencias de **kata y kumite** de la Asociación de Karate y Artes Marciales de Tamaulipas. Permite registrar competidores, asignarles categorías, generar gráficas de enfrentamientos y operar el marcador durante los combates. La versión actual del proyecto es **1.3.1**.
+Aplicación de escritorio para organizar competencias de **kata y kumite** de la Asociación de Karate y Artes Marciales de Tamaulipas. Permite registrar competidores, asignarles categorías, generar gráficas de enfrentamientos y operar el marcador durante los combates. La versión actual del proyecto es **1.4.0**.
 
 > **Estado:** la aplicación principal funciona en modo local. Algunas pantallas e integraciones de nube/jueces están presentes, pero no constituyen todavía un flujo inalámbrico completo. Consulta [Limitaciones y problemas conocidos](#limitaciones-y-problemas-conocidos).
 
@@ -10,9 +10,22 @@ Aplicación de escritorio para organizar competencias de **kata y kumite** de la
 - Generación de gráficas por categoría, visualización de rondas y operación de encuentros de kata y kumite.
 - Marcador de kumite con reloj, puntuaciones de 1/2/3 puntos, penalizaciones, senshu y decisión por ventaja o al finalizar el tiempo.
 - Evaluación de kata con 5 o 7 jueces, descarte de notas extremas, temporizador y resolución manual de empates.
+- Atención médica independiente de tres minutos y sanción Shikkaku con exclusión de inscripciones vinculadas.
 - Ventana adicional de marcador sincronizada con el operador mediante `BroadcastChannel`; atajos de teclado configurables.
 - Datos locales con exportación e importación de respaldo JSON. La copia automática requiere seleccionar una carpeta compatible con la API `showDirectoryPicker`.
 - Enlaces de pre-registro por evento y códigos QR para las vistas de jueces; esta última integración permanece incompleta.
+
+## Descargar la versión 1.4.0
+
+La instalación recomendada para Windows está disponible en la página de [Releases](https://github.com/ingdariovargasjr/karate-scoreboard/releases):
+
+1. Descarga **Karate Scoreboard AKT-1.4.0 Setup.exe**.
+2. Ejecútalo y confirma la instalación.
+3. Abre **Karate Scoreboard AKT** desde el menú Inicio o el acceso directo.
+
+También existe una versión portable en `.zip`. Para conocer el flujo completo del marcador, consulta la [guía rápida de usuario](docs/guia-usuario.md) y las [notas de la versión 1.4.0](docs/releases/v1.4.0.md).
+
+> El instalador no está firmado digitalmente. Windows puede mostrar SmartScreen; verifica que el archivo provenga del release oficial antes de ejecutarlo.
 
 ## Tecnologías y dependencias
 
@@ -46,6 +59,16 @@ La aplicación abierta por Electron es `index.html` desde `main.js`. `login.html
 
 `npm start` genera `css/output.css` y abre la ventana Electron. El desarrollo local se ha comprobado en Windows; `forge.config.js` también declara makers para otros sistemas, pero aquí no se documenta una validación de sus paquetes.
 
+## Uso rápido
+
+1. Registra competidores en **ADMIN** y configura las categorías.
+2. Para kata, elige 5 o 7 jueces antes de generar las gráficas.
+3. Genera las gráficas y abre el encuentro desde el operador correspondiente.
+4. Usa **ABRIR SCOREBOARD TV** para abrir la vista pública sincronizada.
+5. Exporta un respaldo JSON antes de cambiar de computadora o borrar los datos locales.
+
+La [guía rápida de usuario](docs/guia-usuario.md) explica kumite, kata, atención médica, Shikkaku, desempates, TV y respaldos.
+
 ### Revisión de la interfaz en navegador
 
 Si solo quieres inspeccionar la interfaz sin abrir Electron, después de `npm ci`:
@@ -64,9 +87,9 @@ Abre <http://127.0.0.1:4173/index.html>. Es una vista local de la aplicación; s
 | `npm run build:css` | Genera `css/output.css` desde `input.css` y las clases detectadas en `index.html`/`main.js`. |
 | `npm start` | Compila CSS e inicia Electron Forge. |
 | `npm run package` | Compila CSS y crea el paquete de la aplicación sin generar necesariamente un instalador. |
-| `npm run make` | En el `package.json` versionado en `main`, compila CSS y ejecuta los makers de Electron Forge; los artefactos se generan en `out/`. |
+| `npm run make` | Compila CSS y ejecuta los makers de Electron Forge; en Windows genera el instalador Squirrel y el paquete de la aplicación en `out/`. |
 
-`css/output.css` está versionado: incluye su regeneración en cambios de estilos o clases Tailwind. `npm run dist` llama a `electron-builder`, paquete que **no figura** entre las dependencias declaradas; no es la ruta documentada para generar distribuciones. No se ofrece aquí un instalador de descarga verificado: el procedimiento anterior instala y ejecuta el **código fuente**.
+`css/output.css` está versionado: incluye su regeneración en cambios de estilos o clases Tailwind. `npm run dist` llama a `electron-builder`, paquete que **no figura** entre las dependencias declaradas; no es la ruta documentada para generar distribuciones. Para usuarios finales, utiliza el instalador publicado en [Releases](https://github.com/ingdariovargasjr/karate-scoreboard/releases), no el código fuente.
 
 ## Cómo se usan los datos y el marcador
 
