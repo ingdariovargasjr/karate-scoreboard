@@ -91,6 +91,21 @@ Abre <http://127.0.0.1:4173/index.html>. Es una vista local de la aplicación; s
 
 `css/output.css` está versionado: incluye su regeneración en cambios de estilos o clases Tailwind. `npm run dist` llama a `electron-builder`, paquete que **no figura** entre las dependencias declaradas; no es la ruta documentada para generar distribuciones. Para usuarios finales, utiliza el instalador publicado en [Releases](https://github.com/ingdariovargasjr/karate-scoreboard/releases), no el código fuente.
 
+### Firma digital del instalador Windows
+
+La compilación es unsigned por defecto. Para firmar el instalador se necesita un certificado Authenticode emitido por una autoridad certificadora reconocida, normalmente en formato `.pfx` o `.p12` con su clave privada. No guardes ese archivo ni su contraseña en Git.
+
+En PowerShell, define las variables solo durante la compilación:
+
+```powershell
+$env:WINDOWS_CERTIFICATE_FILE = 'C:\ruta-segura\akt-code-signing.pfx'
+$env:WINDOWS_CERTIFICATE_PASSWORD = 'contraseña-del-certificado'
+npm run make
+Get-AuthenticodeSignature '.\out\make\squirrel.windows\x64\Karate Scoreboard AKT-1.4.0 Setup.exe'
+```
+
+El resultado debe mostrar `Status : Valid` y el certificado de la organización. La firma ayuda a construir reputación para Microsoft SmartScreen, pero no garantiza que desaparezca inmediatamente el aviso en las primeras descargas; también influyen la reputación del certificado, el archivo y las descargas de los usuarios.
+
 ## Cómo se usan los datos y el marcador
 
 El flujo activo guarda competidores, gráficas y preferencias de teclado en el almacenamiento local del perfil donde se ejecuta; también lee eventos locales, aunque su creación tiene un fallo conocido. La vista principal arranca en registro; desde la navegación se accede a gráficas y a los operadores de kata/kumite. La ventana de TV/marcador usa una URL con `?view=scoreboard` y recibe el estado del operador por `BroadcastChannel('karate_manager_sync')`.
