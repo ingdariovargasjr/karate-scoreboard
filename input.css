@@ -89,6 +89,20 @@ select.kata-input-box {
 .modal-enter-from, .modal-leave-to { opacity: 0; }
 .input-disabled { @apply bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200; }
 
+/* Kata tie warning: non-blocking notification and highlighted tied scores. */
+.kata-tie-notification-enter-active,
+.kata-tie-notification-leave-active { transition: opacity 220ms ease, transform 260ms ease; }
+.kata-tie-notification-enter-from,
+.kata-tie-notification-leave-to { opacity: 0; transform: translateX(24px) scale(0.94); }
+.kata-tie-score { animation: kata-tie-score-alert 850ms ease-in-out infinite; }
+@keyframes kata-tie-score-alert {
+    0%, 100% { background-color: #fef3c7; border-color: #d97706; box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.25); }
+    50% { background-color: #fde68a; border-color: #92400e; box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.35); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .kata-tie-score { animation: none; }
+}
+
 /* Brackets */
 .bracket-scroll-area { display: flex; padding: 40px; gap: 0; }
 .round-column { display: flex; flex-direction: column; justify-content: space-around; min-width: 300px; position: relative; }

@@ -29,7 +29,7 @@ Pulsa `S` bajo el atleta sancionado, selecciona manualmente otras inscripciones 
 3. Usa **INICIAR (35s)** para el inicio o **INICIAR (5:00)** para el reloj de equipo.
 4. Captura las notas en la fila roja AKA y la azul AO.
 5. En un encuentro de gráfica, captura AKA, pulsa **SIGUIENTE COMPETIDOR** y captura AO.
-6. Un juez empatado otorga un voto a cada atleta.
+6. Si un juez da la misma calificación a AKA y AO, el resultado queda bloqueado: aparecerá un modal con el número del juez y debes corregir una de sus notas.
 7. El ganador se decide por mayoría de votos, no por suma de notas.
 8. Si hay empate global, corrige cualquier nota y vuelve a comparar. No se puede finalizar mientras continúe el empate.
 
