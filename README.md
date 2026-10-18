@@ -1,6 +1,6 @@
 # Karate Scoreboard AKT
 
-Aplicación de escritorio para organizar competencias de **kata y kumite** de la Asociación de Karate y Artes Marciales de Tamaulipas. Permite registrar competidores, asignarles categorías, generar gráficas de enfrentamientos y operar el marcador durante los combates. La versión actual del proyecto es **1.4.0**.
+Aplicación de escritorio para organizar competencias de **kata y kumite** de la Asociación de Karate y Artes Marciales de Tamaulipas. Permite registrar competidores, asignarles categorías, generar gráficas de enfrentamientos y operar el marcador durante los combates. La versión actual del proyecto es **1.4.1**.
 
 > **Estado:** la aplicación principal funciona en modo local. Algunas pantallas e integraciones de nube/jueces están presentes, pero no constituyen todavía un flujo inalámbrico completo. Consulta [Limitaciones y problemas conocidos](#limitaciones-y-problemas-conocidos).
 
@@ -15,15 +15,15 @@ Aplicación de escritorio para organizar competencias de **kata y kumite** de la
 - Datos locales con exportación e importación de respaldo JSON. La copia automática requiere seleccionar una carpeta compatible con la API `showDirectoryPicker`.
 - Enlaces de pre-registro por evento y códigos QR para las vistas de jueces; esta última integración permanece incompleta.
 
-## Descargar la versión 1.4.0
+## Descargar la versión 1.4.1
 
 La instalación recomendada para Windows está disponible en la página de [Releases](https://github.com/ingdariovargasjr/karate-scoreboard/releases):
 
-1. Descarga **Karate Scoreboard AKT-1.4.0 Setup.exe**.
+1. Descarga **Karate Scoreboard AKT-1.4.1 Setup.exe**.
 2. Ejecútalo y confirma la instalación.
 3. Abre **Karate Scoreboard AKT** desde el menú Inicio o el acceso directo.
 
-También existe una versión portable en `.zip`. Para conocer el flujo completo del marcador, consulta la [guía rápida de usuario](docs/guia-usuario.md) y las [notas de la versión 1.4.0](docs/releases/v1.4.0.md).
+También existe una versión portable en `.zip`. Para conocer el flujo completo del marcador, consulta la [guía rápida de usuario](docs/guia-usuario.md), las [notas de la versión 1.4.1](docs/releases/v1.4.1.md) y la [guía de fixes](docs/releases/v1.4.1.md#guia-de-fixes).
 
 > El instalador no está firmado digitalmente. Windows puede mostrar SmartScreen; verifica que el archivo provenga del release oficial antes de ejecutarlo.
 
