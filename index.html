@@ -913,8 +913,9 @@
                                         v-model.number="kataState[side === 'aka' ? 'akaScores' : 'aoScores'][i - 1]"
                                         :disabled="!!activeMatchId && kataState.matchStep === 1 && side === 'ao'"
                                         :aria-label="`${side === 'aka' ? 'AKA' : 'AO'} juez ${i}`"
-                                        :class="kataJudgeVote(i - 1) === (side === 'aka' ? 'AKA' : 'AO') || kataJudgeVote(i - 1) === 'TIE' ? (side === 'aka' ? 'bg-red-600 text-white border-red-800' : 'bg-blue-600 text-white border-blue-800') : 'bg-white text-gray-900 border-black'"
-                                        class="w-20 h-16 border-4 rounded-lg text-center text-3xl font-bold focus:ring-2 focus:ring-yellow-400 disabled:opacity-60">
+                                         :class="kataJudgeVote(i - 1) === 'TIE' ? 'kata-tie-score bg-yellow-100 text-gray-900 border-amber-500' : (kataJudgeVote(i - 1) === (side === 'aka' ? 'AKA' : 'AO') ? (side === 'aka' ? 'bg-red-600 text-white border-red-800' : 'bg-blue-600 text-white border-blue-800') : 'bg-white text-gray-900 border-black')"
+                                         :aria-invalid="kataJudgeVote(i - 1) === 'TIE'"
+                                         class="w-20 h-16 border-4 rounded-lg text-center text-3xl font-bold focus:ring-2 focus:ring-yellow-400 disabled:opacity-60">
                                 </div>
                             </div>
                         </div>
@@ -976,11 +977,11 @@
                             </div>
                         </div>
                     </div>
-                    <div v-if="kataTieNotice"
-                        class="bg-amber-50 border-2 border-amber-500 text-amber-900 rounded-xl p-4 shadow font-black text-center max-w-md">
-                        EMPATE: cambie una calificación y vuelva a comparar.
-                    </div>
-                </div>
+                     <div v-if="kataTieNotice"
+                         class="bg-amber-50 border-2 border-amber-500 text-amber-900 rounded-xl p-4 shadow font-black text-center max-w-md">
+                         EMPATE DE CALIFICACIÓN: corrija los jueces {{ kataTieJudgeNumbers.map(j => 'J' + j).join(', ') }} antes de mostrar votos.
+                     </div>
+                 </div>
 
                 <div v-else class="bg-white p-2 h-full overflow-auto rounded-lg shadow-lg">
                     <div
@@ -1235,6 +1236,40 @@
                     </div>
                 </div>
             </div>
+
+            <transition name="kata-tie-notification">
+                <div v-if="isKataTieModalOpen"
+                    class="fixed top-20 right-5 z-[400] w-[min(90vw,28rem)]"
+                    role="alert" aria-labelledby="kata-tie-title">
+                    <div class="relative bg-yellow-50 rounded-2xl shadow-2xl overflow-hidden border-4 border-amber-500">
+                        <button @click="dismissKataTieModal" aria-label="Cerrar aviso de empate"
+                            class="absolute top-3 right-3 z-10 flex h-10 w-10 items-center justify-center rounded-full text-gray-700 hover:bg-amber-200 hover:text-gray-950 transition"
+                            type="button">
+                            <i class="fas fa-times text-2xl"></i>
+                        </button>
+                        <div class="bg-amber-400 p-4 pr-16 text-gray-950">
+                        <i class="fas fa-triangle-exclamation text-4xl mb-2"></i>
+                        <h3 id="kata-tie-title" class="text-xl font-black uppercase tracking-wide">Empate de calificación</h3>
+                        </div>
+                        <div class="p-5 text-gray-800">
+                        <p class="text-lg font-black">Este juez dio la misma calificación. Por favor corregir.</p>
+                        <p class="mt-2 text-sm font-bold text-gray-600">Por reglamento no puede darse este resultado. Corrija:</p>
+                        <div class="flex flex-wrap justify-center gap-3 mt-5">
+                            <span v-for="judge in kataTieJudgeNumbers" :key="judge"
+                                class="rounded-lg border-2 border-amber-700 bg-amber-100 px-4 py-2 text-lg font-black text-amber-900">
+                                Juez {{ judge }}
+                            </span>
+                        </div>
+                        </div>
+                        <div class="border-t border-amber-200 bg-yellow-100 p-3 flex justify-center">
+                            <button @click="dismissKataTieModal"
+                                class="rounded-lg bg-gray-900 px-6 py-3 text-lg font-black text-white hover:bg-gray-700">
+                                CORREGIR CALIFICACIONES
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </transition>
 
             <div v-if="isJudgeMode" class="h-full bg-gray-900 flex flex-col text-white p-4">
                 <div class="text-center mb-6 border-b border-gray-700 pb-4">
@@ -1655,9 +1690,10 @@
                 const judgeViewData = reactive({ status: 'waiting', competitor: '', kata: '', category: '', round: '' });
                 const judgeScore = ref(null);
                 const isScoreSent = ref(false);
-                const isQRModalOpen = ref(false);
-                const isKeyConfigModalOpen = ref(false);
-                const waitingForKey = ref(null);
+                 const isQRModalOpen = ref(false);
+                 const isKeyConfigModalOpen = ref(false);
+                 const isKataTieModalOpen = ref(false);
+                 const waitingForKey = ref(null);
                 const keySettings = reactive({
                     startStop: 'Space',
                     aka1: '1', aka2: '2', aka3: '3',
@@ -2495,22 +2531,32 @@
                     runKataTimer();
                 };
                 const isValidKataScore = score => score !== null && score !== '' && Number.isFinite(Number(score)) && Number(score) >= 0;
-                const kataScoresComplete = scores => !!kataJudgeCount.value && scores.slice(0, kataJudgeCount.value).length === kataJudgeCount.value
-                    && scores.slice(0, kataJudgeCount.value).every(isValidKataScore);
-                const activeKataScoresComplete = computed(() => kataScoresComplete(activeMatchId.value && kataState.matchStep === 2 ? kataState.aoScores : kataState.akaScores));
-                const kataVotesReady = computed(() => kataScoresComplete(kataState.akaScores) && kataScoresComplete(kataState.aoScores));
-                const canChangeFreeKataJudges = computed(() => !activeMatchId.value && !kataState.timerMode
-                    && [...kataState.akaScores, ...kataState.aoScores].every(score => score === null || score === ''));
+                 const kataScoresComplete = scores => !!kataJudgeCount.value && scores.slice(0, kataJudgeCount.value).length === kataJudgeCount.value
+                     && scores.slice(0, kataJudgeCount.value).every(isValidKataScore);
+                 const activeKataScoresComplete = computed(() => kataScoresComplete(activeMatchId.value && kataState.matchStep === 2 ? kataState.aoScores : kataState.akaScores));
+                 const kataScoresReady = computed(() => kataScoresComplete(kataState.akaScores) && kataScoresComplete(kataState.aoScores));
+                 const canChangeFreeKataJudges = computed(() => !activeMatchId.value && !kataState.timerMode
+                     && [...kataState.akaScores, ...kataState.aoScores].every(score => score === null || score === ''));
                 const setFreeKataJudges = count => {
                     if (![5, 7].includes(count) || !canChangeFreeKataJudges.value) return;
                     freeKataJudges.value = count;
                 };
-                const kataJudgeVote = i => {
-                    const aka = kataState.akaScores[i], ao = kataState.aoScores[i];
-                    if (!isValidKataScore(aka) || !isValidKataScore(ao)) return null;
-                    return Number(aka) > Number(ao) ? 'AKA' : Number(ao) > Number(aka) ? 'AO' : 'TIE';
-                };
-                const kataTotalFromScores = scores => {
+                 const kataJudgeVote = i => {
+                     const aka = kataState.akaScores[i], ao = kataState.aoScores[i];
+                     if (!isValidKataScore(aka) || !isValidKataScore(ao)) return null;
+                     return Number(aka) > Number(ao) ? 'AKA' : Number(ao) > Number(aka) ? 'AO' : 'TIE';
+                 };
+                 const kataTieJudgeNumbers = computed(() => {
+                     if (!kataScoresReady.value) return [];
+                     const tied = [];
+                     for (let i = 0; i < kataJudgeCount.value; i++) {
+                         if (kataJudgeVote(i) === 'TIE') tied.push(i + 1);
+                     }
+                     return tied;
+                 });
+                 const kataVotesReady = computed(() => kataScoresReady.value && kataTieJudgeNumbers.value.length === 0);
+                 let kataTieModalSignature = '';
+                 const kataTotalFromScores = scores => {
                     const sorted = scores.slice(0, kataJudgeCount.value).map(Number).sort((a, b) => a - b);
                     const middle = kataJudgeCount.value === 7 ? sorted.slice(2, 5) : sorted.slice(1, 4);
                     return Number(middle.reduce((a, b) => a + b, 0).toFixed(2));
@@ -2519,16 +2565,16 @@
                     const scores = activeMatchId.value && kataState.matchStep === 2 ? kataState.aoScores : kataState.akaScores;
                     kataState.total = kataScoresComplete(scores) ? kataTotalFromScores(scores).toFixed(2) : '0.00';
                 };
-                const updateKataVotes = () => {
-                    if (!kataVotesReady.value) { kataState.akaVotes = 0; kataState.aoVotes = 0; kataState.judgeVotes = []; return; }
-                    let aka = 0, ao = 0;
-                    const judgeVotes = [];
-                    for (let i = 0; i < kataJudgeCount.value; i++) {
-                        const vote = kataJudgeVote(i);
-                        if (vote !== 'AO') aka++;
-                        if (vote !== 'AKA') ao++;
-                        judgeVotes.push(vote);
-                    }
+                 const updateKataVotes = () => {
+                     if (!kataScoresReady.value) { kataState.akaVotes = 0; kataState.aoVotes = 0; kataState.judgeVotes = []; return; }
+                     let aka = 0, ao = 0;
+                     const judgeVotes = [];
+                     for (let i = 0; i < kataJudgeCount.value; i++) {
+                         const vote = kataJudgeVote(i);
+                         if (vote === 'AKA') aka++;
+                         if (vote === 'AO') ao++;
+                         judgeVotes.push(vote);
+                     }
                     kataState.akaVotes = aka;
                     kataState.aoVotes = ao;
                     kataState.judgeVotes = judgeVotes;
@@ -2540,7 +2586,7 @@
                     kataState.tvAoVotes = kataVotesReady.value ? kataState.aoVotes : 0;
                     kataState.tvWinner = null;
                 };
-                const persistKataDraft = () => {
+                 const persistKataDraft = () => {
                     if (loadingKataMatch || !activeMatchId.value || !kataJudgeCount.value || activeKataMatch.value?.winner) return;
                     const match = activeKataMatch.value;
                     if (!match || brackets.value[selectedBracketName.value]?.modality !== 'KATA') return;
@@ -2550,37 +2596,57 @@
                         akaVotes: kataVotesReady.value ? kataState.akaVotes : null,
                         aoVotes: kataVotesReady.value ? kataState.aoVotes : null
                     };
-                    saveBracketUpdate(selectedBracketName.value);
-                };
-                watch([() => kataState.akaScores, () => kataState.aoScores, kataJudgeCount, () => kataState.matchStep], () => {
-                    calculateKata();
-                    updateKataVotes();
-                    updateFreeKataTVVotes();
-                    persistKataDraft();
-                }, { deep: true });
-                const showKataScore = () => {
-                    if (!activeKataScoresComplete.value || (!activeMatchId.value && kataState.timerRunning)) return;
-                    calculateKata(); kataState.scoreVisible = true;
+                     saveBracketUpdate(selectedBracketName.value);
+                 };
+                 const openKataTieModalIfNeeded = () => {
+                     const tiedJudges = kataTieJudgeNumbers.value;
+                     if (!kataScoresReady.value || !tiedJudges.length) {
+                         kataTieModalSignature = '';
+                         isKataTieModalOpen.value = false;
+                         return;
+                     }
+                     const signature = tiedJudges.join(',');
+                     kataState.showVotes = false;
+                     kataState.tvVotesVisible = false;
+                     kataState.tvAkaVotes = 0;
+                     kataState.tvAoVotes = 0;
+                     kataState.tvWinner = null;
+                     if (signature !== kataTieModalSignature) {
+                         kataTieModalSignature = signature;
+                         isKataTieModalOpen.value = true;
+                     }
+                 };
+                 const dismissKataTieModal = () => { isKataTieModalOpen.value = false; };
+                 watch([() => kataState.akaScores, () => kataState.aoScores, kataJudgeCount, () => kataState.matchStep], () => {
+                     calculateKata();
+                     updateKataVotes();
+                     openKataTieModalIfNeeded();
+                     updateFreeKataTVVotes();
+                     persistKataDraft();
+                 }, { deep: true });
+                 const showKataScore = () => {
+                     if (!activeKataScoresComplete.value || (!activeMatchId.value && kataState.timerRunning)) return;
+                     if (kataTieJudgeNumbers.value.length) { openKataTieModalIfNeeded(); return; }
+                     calculateKata(); kataState.scoreVisible = true;
                     if (!activeMatchId.value) kataState.showTimer = false;
                 };
-                const kataTieNotice = computed(() => kataVotesReady.value && kataState.akaVotes === kataState.aoVotes
-                    && (!activeMatchId.value || kataState.showVotes));
-                const calculateVotes = ({ notify = true } = {}) => {
-                    if (!kataVotesReady.value || (activeMatchId.value && kataState.matchStep !== 2)) return;
-                    updateKataVotes();
-                    kataState.showVotes = true;
-                    if (notify && kataState.akaVotes === kataState.aoVotes) {
-                        alert('EMPATE DE VOTOS. Cambie una calificación y vuelva a comparar.');
-                    }
-                };
-                const resetKata = ({ preserveAka = !!activeMatchId.value && kataState.matchStep === 2 } = {}) => {
+                 const kataTieNotice = computed(() => kataTieJudgeNumbers.value.length > 0);
+                 const calculateVotes = ({ notify = true } = {}) => {
+                     if (!kataScoresReady.value || (activeMatchId.value && kataState.matchStep !== 2)) return;
+                     if (kataTieJudgeNumbers.value.length) { openKataTieModalIfNeeded(); return; }
+                     updateKataVotes();
+                     kataState.showVotes = true;
+                 };
+                 const resetKata = ({ preserveAka = !!activeMatchId.value && kataState.matchStep === 2 } = {}) => {
                     if (!preserveAka) kataState.akaScores = Array(7).fill(null);
                     kataState.aoScores = Array(7).fill(null);
                     kataState.total = '0.00'; kataState.scoreVisible = false;
                     stopKataTimer(); kataState.timerMode = null; kataState.showTimer = false; kataState.timer = 35000;
-                    kataState.showVotes = false; kataState.akaVotes = 0; kataState.aoVotes = 0; kataState.judgeVotes = [];
-                    kataState.tvVotesVisible = false; kataState.tvAkaVotes = 0; kataState.tvAoVotes = 0; kataState.tvWinner = null;
-                };
+                     kataState.showVotes = false; kataState.akaVotes = 0; kataState.aoVotes = 0; kataState.judgeVotes = [];
+                     kataState.tvVotesVisible = false; kataState.tvAkaVotes = 0; kataState.tvAoVotes = 0; kataState.tvWinner = null;
+                     kataTieModalSignature = '';
+                     isKataTieModalOpen.value = false;
+                 };
                 const selectKata = (k) => { kataState.kataName = k; kataSearchQuery.value = k; isKataDropdownOpen.value = false; };
                 const selectKataMunicipio = (m) => { kataState.municipioObj = m; kataState.countryName = m.name.toUpperCase(); kataState.countryCode = m.code; municipioSearchQuery.value = m.name; isMunicipioDropdownOpen.value = false; };
                 const closeKataDropdown = () => { setTimeout(() => { isKataDropdownOpen.value = false; }, 200); };
@@ -2619,9 +2685,10 @@
                     kataSearchQuery, municipioSearchQuery, isKataDropdownOpen, isMunicipioDropdownOpen, filteredKatas, filteredMunicipios, selectKata, selectKataMunicipio, closeKataDropdown, closeMunicipioDropdown,
                     isDojoDropdownOpen, filteredDojos, selectDojo, closeDojoDropdown,
                     downloadBackup, selectBackupFolder, isAutoBackupActive, triggerImport, handleFileUpload, competitorFilter, competitorSearchQuery, filteredCompetitors, paginatedCompetitors, currentPage, totalPages, itemsPerPage, bracketFilter, bracketSearchQuery, filteredBrackets, getPairs,
-                    isEventModalOpen, eventForm, isSendingEmail, kataJudgeCount, calculateVotes,
-                    tournamentKataJudges, kataJudgeConfigLocked, setTournamentKataJudges, beginNewKataTournament,
-                    setFreeKataJudges, canChangeFreeKataJudges, activeKataMatch, activeKataScoresComplete, kataVotesReady, kataTieNotice, kataJudgeVote,
+                     isEventModalOpen, eventForm, isSendingEmail, kataJudgeCount, calculateVotes,
+                     tournamentKataJudges, kataJudgeConfigLocked, setTournamentKataJudges, beginNewKataTournament,
+                     setFreeKataJudges, canChangeFreeKataJudges, activeKataMatch, activeKataScoresComplete, kataVotesReady, kataTieNotice, kataJudgeVote, kataTieJudgeNumbers,
+                     isKataTieModalOpen, dismissKataTieModal,
                     isJudgeMode, judgeViewData, judgeScore, sendJudgeScore, isScoreSent,
                     isQRModalOpen, openQRModal, closeQRModal, startKataLiveSession, judgeId,
                     logout, onDragStart, onDrop, saveBracketUpdate, updateKataCategoryDisplay,
