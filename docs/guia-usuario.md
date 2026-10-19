@@ -36,7 +36,11 @@ Pulsa `S` bajo el atleta sancionado, selecciona manualmente otras inscripciones 
 ## 4. Marcador TV
 
 - Abre la TV desde el botón del operador; no abras `index.html` con `file://`.
-- TV kumite muestra nombres, puntos, penalizaciones y reloj sincronizados.
+- En la vista de **Registro/Admin**, usa **CARGAR LOGO** en el bloque **Logo de Kata TV** para elegir el logo del torneo; puedes cambiarlo o quitarlo después.
+- TV kata presenta el tatami, categoría/división, competidor, municipio, kata y logo del torneo en una distribución de alto contraste.
+- TV kumite distingue AKA rojo y AO azul, muestra sus puntos y penalizaciones, e identifica Senshu con un triángulo verde en el marcador correspondiente.
+- Las penalizaciones activas se resaltan en amarillo. El reloj detenido se ve blanco, en marcha amarillo y durante los últimos 15 segundos rojo.
+- Las vistas TV se sincronizan con el operador; mantén ambas ventanas abiertas en la aplicación durante el encuentro.
 - TV kata no muestra notas individuales ni votos por juez.
 - TV kata muestra votos totales al finalizar una gráfica o completar una actuación libre.
 - Mientras un reloj de kata está visible, el reloj tiene prioridad sobre los votos.
