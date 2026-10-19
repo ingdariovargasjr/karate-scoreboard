@@ -7,11 +7,11 @@ body { font-family: 'Roboto', sans-serif; }
 
 /* Senshu Triangle */
 .senshu-triangle {
-    position: absolute; bottom: 0; left: 0; width: 40%; height: 40%;
-    background-color: #22c55e; clip-path: polygon(0 0, 0% 100%, 100% 100%); z-index: 10;
+    position: absolute; bottom: 0; right: 0; width: 40%; height: 40%;
+    background-color: #22e783; clip-path: polygon(100% 0, 0 100%, 100% 100%); z-index: 10;
 }
 .senshu-text {
-    position: absolute; bottom: 2px; left: 4px; font-size: 1.2rem; font-weight: bold; color: white; z-index: 11; line-height: 1;
+    position: absolute; bottom: 3px; right: 5px; font-size: 1.2rem; font-weight: 900; color: #07120c; z-index: 11; line-height: 1;
 }
 
 /* TV penalty indicators: these reflect state; they are not operator buttons. */
@@ -101,6 +101,924 @@ select.kata-input-box {
 }
 @media (prefers-reduced-motion: reduce) {
     .kata-tie-score { animation: none; }
+}
+
+/* Kata operator: compact control-room layout, independent of the TV scoreboard. */
+.kata-operator-layout {
+    max-width: 96rem;
+    align-items: stretch;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+.kata-operator-main {
+    min-width: 0;
+    padding: clamp(1rem, 2vw, 2rem);
+    border-color: #dbe4ef;
+    border-radius: 1rem;
+    box-shadow: none;
+}
+.kata-operator-header {
+    gap: 1rem;
+    border-color: #e5eaf1;
+}
+.kata-operator-eyebrow {
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+.kata-operator-eyebrow i { margin-right: 0.35rem; color: #64748b; }
+.kata-operator-eyebrow span { margin: 0 0.35rem; color: #cbd5e1; }
+.kata-operator-title {
+    margin-top: 0.2rem;
+    color: #14233b;
+    font-size: clamp(1.4rem, 2.5vw, 2rem);
+    font-weight: 900;
+    letter-spacing: -0.035em;
+    line-height: 1.1;
+}
+.kata-category-control { flex-wrap: wrap; justify-content: flex-end; }
+.kata-category-control select {
+    max-width: min(100%, 20rem);
+    color: #17243a;
+}
+.kata-operator-fields { gap: 1rem; }
+.kata-operator-field { min-width: 0; }
+.kata-operator-field .kata-input-box {
+    min-height: 3.4rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.65rem;
+    padding: 0.65rem 0.85rem;
+    color: #17243a;
+    font-size: 1.05rem;
+    text-align: left;
+    box-shadow: none;
+}
+.kata-operator-field .kata-input-box:focus {
+    border-color: #64748b;
+    box-shadow: none;
+    outline: 2px solid #cbd5e1;
+    outline-offset: 1px;
+}
+.kata-operator-field ul {
+    border: 1px solid #cbd5e1;
+    border-radius: 0.65rem;
+    overflow: hidden;
+    box-shadow: none;
+}
+.kata-operator-field ul li { padding: 0.7rem 0.85rem; }
+.kata-operator-side-select {
+    justify-content: flex-start;
+    border-color: #e2e8f0;
+    background: #f8fafc;
+}
+.kata-operator-side-select button { min-width: 7.5rem; border-radius: 0.55rem; }
+.kata-operator-layout .kata-operator-side-select button[aria-pressed="true"] { box-shadow: none !important; }
+.kata-operator-controls {
+    gap: 0.65rem;
+    padding-bottom: 1.25rem;
+    border-color: #e5eaf1;
+}
+.kata-operator-controls > button {
+    min-height: 2.9rem;
+    border-radius: 0.6rem;
+    padding: 0.65rem 1rem;
+    font-size: 0.9rem;
+}
+.kata-operator-controls > div[aria-label="Tiempo kata"] {
+    min-width: 7.5rem;
+    color: #17243a;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+.kata-operator-judges {
+    border: 1px solid #e5eaf1;
+    border-radius: 0.8rem;
+    background: #f8fafc;
+    padding: 1rem;
+}
+.kata-operator-judges > div:first-child { margin-bottom: 0.9rem; }
+.kata-operator-judges input {
+    height: 3.4rem;
+    border-width: 2px;
+    border-radius: 0.6rem;
+    font-size: 1.4rem;
+}
+.kata-operator-judges > div.flex.flex-col > div.flex.items-end > span:not(:first-child) {
+    color: #64748b;
+    font-size: 0.8rem;
+}
+.kata-operator-main > .flex.justify-center button {
+    min-height: 3rem;
+    border-radius: 0.65rem;
+    padding: 0.7rem 1.2rem;
+    font-size: 0.95rem;
+}
+.kata-operator-votes {
+    position: sticky;
+    top: 1rem;
+    flex: 0 0 16rem;
+    width: 16rem;
+    border-color: #dbe4ef;
+    border-radius: 1rem;
+    box-shadow: 0 12px 32px rgba(15, 35, 65, 0.09);
+}
+.kata-operator-votes h2 { color: #17243a; font-size: 1.1rem; letter-spacing: 0.12em; }
+.kata-operator-votes > div:last-of-type { border-color: #e5eaf1; }
+.kata-operator-tie { flex: 1 0 100%; max-width: none; border-radius: 0.8rem; }
+.kata-operator-votes { box-shadow: none; }
+.kata-operator-votes .kata-operator-vote-count { -webkit-text-stroke: 0; text-shadow: none; }
+.kata-operator-votes > div.flex.flex-col > span { color: #64748b; }
+.kata-operator-judges input:focus { outline: 2px solid #cbd5e1; outline-offset: 1px; box-shadow: none; }
+.kata-operator-judges input.bg-red-700 { background-color: #9a4b4b !important; border-color: #733737 !important; }
+.kata-operator-judges input.bg-slate-700 { background-color: #536477 !important; border-color: #384656 !important; }
+.kata-operator-judges .kata-tie-score {
+    animation: none;
+    background-color: #e8d9b4 !important;
+    border-color: #a8894f !important;
+    box-shadow: none !important;
+}
+.kata-operator-controls .kata-operator-timer { color: #475569 !important; }
+.kata-operator-controls .kata-timer-warning { animation: none; }
+.kata-operator-tie { box-shadow: none; }
+@media (max-width: 900px) {
+    .kata-operator-layout { gap: 1rem; }
+    .kata-operator-main { flex: 1 1 100%; }
+    .kata-operator-votes { position: static; flex: 1 1 100%; width: 100%; }
+    .kata-operator-votes > div.flex.flex-col { flex-direction: row; justify-content: space-around; width: 100%; }
+}
+@media (max-width: 640px) {
+    .kata-operator-main { padding: 1rem; }
+    .kata-operator-header { align-items: flex-start; flex-direction: column; }
+    .kata-category-control { align-items: flex-start; justify-content: flex-start; }
+    .kata-category-control select { width: 100%; max-width: 100%; }
+    .kata-operator-fields { gap: 0.8rem; }
+    .kata-operator-judges { padding: 0.6rem; }
+    .kata-operator-controls { align-items: stretch; }
+    .kata-operator-controls > button { flex: 1 1 40%; justify-content: center; }
+}
+
+/* Kata TV redesign — visual hierarchy based on the approved mockup. */
+.kata-tv-screen {
+    --kata-tv-blue: #0878ff;
+    --kata-tv-glow: #35a8ff;
+    --kata-tv-red: #d91f35;
+    --kata-tv-side-blue: #075de0;
+    position: relative;
+    isolation: isolate;
+    padding: clamp(0.75rem, 2vw, 2.5rem);
+    border: clamp(3px, 0.35vw, 6px) solid #07327a;
+    border-radius: clamp(0.75rem, 1.3vw, 1.5rem);
+    background: radial-gradient(ellipse at 50% 40%, #091a36 0%, #030a18 68%, #01050d 100%);
+    box-shadow: inset 0 0 2rem rgba(0, 87, 255, 0.18), 0 0 1.2rem rgba(0, 87, 255, 0.25);
+}
+.kata-tv-screen::before {
+    position: absolute;
+    z-index: -1;
+    inset: clamp(0.4rem, 1vw, 1rem);
+    border: clamp(2px, 0.25vw, 4px) solid var(--kata-tv-blue);
+    box-shadow: 0 0 0.9rem var(--kata-tv-glow), inset 0 0 1rem rgba(0, 95, 255, 0.15);
+    content: "";
+    pointer-events: none;
+}
+.kata-tv-header {
+    min-height: 11%;
+    padding: 0 clamp(0.35rem, 1vw, 1rem);
+}
+.kata-tv-tatami {
+    display: flex;
+    align-items: baseline;
+    gap: clamp(0.5rem, 1.2vw, 1.5rem);
+    color: #f7fbff;
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(1.4rem, 3.7vw, 4.5rem);
+    font-weight: 800;
+    line-height: 1;
+    text-transform: uppercase;
+    text-shadow: 0 0 0.8rem rgba(68, 155, 255, 0.65);
+}
+.kata-tv-tatami-label { letter-spacing: 0.06em; }
+.kata-tv-tatami-number { color: #72bdff; }
+.kata-tv-event-name { color: #9dcaff; font-family: 'Oswald', sans-serif; font-size: clamp(0.85rem, 1.7vw, 1.8rem); font-weight: 800; letter-spacing: 0.12em; text-align: right; text-transform: uppercase; }
+.kata-tv-category-band {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(0.5rem, 1.5vw, 2rem);
+    min-height: 10%;
+    margin: 0 clamp(0.3rem, 0.8vw, 1rem);
+    padding: 0.35rem 1rem;
+    color: #f7fbff;
+    background: linear-gradient(90deg, rgba(6, 50, 121, 0.1), rgba(12, 74, 165, 0.52), rgba(6, 50, 121, 0.1));
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(1rem, 2.4vw, 2.8rem);
+    font-weight: 800;
+    letter-spacing: 0.045em;
+    text-align: center;
+    text-transform: uppercase;
+}
+.kata-tv-category-divider { color: #4a9cff; }
+.kata-tv-athlete-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(8rem, 21%);
+    align-items: center;
+    gap: clamp(1rem, 3vw, 3rem);
+    min-height: 0;
+    flex: 1 1 40%;
+    padding: clamp(0.7rem, 2vw, 2rem) clamp(0.5rem, 1.4vw, 1.5rem);
+}
+.kata-tv-athlete-info { min-width: 0; }
+.kata-tv-athlete-name {
+    margin: 0 0 clamp(0.75rem, 2vh, 2rem);
+    color: #fff;
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(2rem, 5.3vw, 6.5rem);
+    font-weight: 900;
+    line-height: 1.06;
+    overflow-wrap: anywhere;
+    text-shadow: 0 0 0.85rem rgba(55, 145, 255, 0.5);
+    text-transform: uppercase;
+}
+.kata-tv-municipality { display: flex; align-items: center; gap: clamp(0.75rem, 1.7vw, 2rem); }
+.kata-tv-municipality-badge {
+    display: grid;
+    width: clamp(4rem, 9vw, 10rem);
+    aspect-ratio: 1.45;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 2px solid #d8ecff;
+    background: linear-gradient(145deg, #0c73ed, #052b70);
+    box-shadow: 0 0 0.8rem rgba(58, 159, 255, 0.4);
+}
+.kata-tv-municipality-badge span {
+    padding: 0.1em 0.28em;
+    color: #fff;
+    background: rgba(0, 12, 36, 0.35);
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(0.75rem, 1.6vw, 1.8rem);
+    font-weight: 900;
+    letter-spacing: 0.06em;
+}
+.kata-tv-municipality-text { display: flex; min-width: 0; flex-direction: column; gap: 0.15em; }
+.kata-tv-field-label {
+    color: #70b6ff;
+    font-size: clamp(0.6rem, 1vw, 1.1rem);
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+.kata-tv-municipality-name {
+    color: #f4f8ff;
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(1.2rem, 3vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+    text-transform: uppercase;
+}
+.kata-tv-side-panel {
+    display: flex;
+    min-height: clamp(8rem, 25vh, 23rem);
+    align-items: center;
+    justify-content: center;
+    border: clamp(3px, 0.3vw, 5px) solid currentColor;
+    box-shadow: 0 0 1.2rem currentColor, inset 0 0 1.2rem rgba(255,255,255,0.12);
+}
+.kata-tv-side-aka { color: #ff5265; background: linear-gradient(145deg, #ed3449, #a70c23); }
+.kata-tv-side-ao { color: #39a6ff; background: linear-gradient(145deg, #147bff, #0646b5); }
+.kata-tv-side-label {
+    color: #fff;
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(2rem, 5vw, 6rem);
+    font-weight: 900;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+}
+.kata-tv-footer {
+    display: grid;
+    grid-template-columns: minmax(11rem, 0.9fr) minmax(0, 1.5fr) minmax(6rem, 0.55fr);
+    align-items: end;
+    gap: clamp(0.75rem, 2vw, 2rem);
+    min-height: 25%;
+    padding: clamp(0.5rem, 1.4vh, 1.5rem) clamp(0.5rem, 1.4vw, 1.5rem) clamp(0.8rem, 2vh, 2rem);
+}
+.kata-tv-kata-block { display: flex; min-width: 0; flex-wrap: wrap; align-items: baseline; gap: 0.3em 0.6em; color: #fff; font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+.kata-tv-kata-block .kata-tv-field-label { flex-basis: 100%; }
+.kata-tv-kata-number { color: #9bcaff; font-size: clamp(1.6rem, 4vw, 4.5rem); font-weight: 900; }
+.kata-tv-kata-name { font-size: clamp(1.2rem, 2.8vw, 3.2rem); font-weight: 800; overflow-wrap: anywhere; }
+.kata-tv-tournament-logo {
+    display: flex;
+    width: 100%;
+    max-width: clamp(5rem, 12vw, 13rem);
+    aspect-ratio: 1;
+    align-items: center;
+    justify-content: center;
+    justify-self: end;
+    padding: clamp(0.3rem, 0.7vw, 0.75rem);
+    border: 2px solid #a6d5ff;
+    background: #fff;
+    box-shadow: 0 0 1rem rgba(37, 137, 255, 0.5);
+}
+.kata-tv-tournament-logo img { width: 100%; height: 100%; object-fit: contain; }
+.kata-tv-live-result { display: flex; min-width: 0; min-height: 6rem; align-items: center; justify-content: center; }
+.kata-tv-timer { font-family: monospace; font-size: clamp(3rem, 12vh, 10rem); font-weight: 900; line-height: 1; }
+.kata-tv-votes { display: flex; width: 100%; justify-content: center; gap: clamp(0.35rem, 1.2vw, 1.5rem); }
+.kata-tv-vote-card { display: flex; min-width: 0; flex: 1; flex-direction: column; align-items: center; border-radius: 0.75rem; padding: 0.35rem 0.7rem; color: #fff; text-align: center; box-shadow: 0 0 0.8rem rgba(0,0,0,0.6); }
+.kata-tv-vote-label { font-size: clamp(0.75rem, 1.25vw, 1.4rem); font-weight: 900; }
+.kata-tv-vote-name { max-width: 100%; overflow: hidden; font-size: clamp(0.65rem, 1vw, 1.1rem); font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.kata-tv-vote-number { font-size: clamp(2rem, 6vh, 5rem); font-weight: 900; line-height: 1; }
+.kata-tv-vote-winner { font-size: clamp(0.65rem, 1vw, 1.1rem); font-weight: 900; }
+.kata-tv-winner { text-align: center; font-family: 'Oswald', sans-serif; font-size: clamp(1.5rem, 3.2vw, 3.8rem); font-weight: 900; }
+.kata-tv-winner span { display: block; margin-top: 0.2em; color: #fff; font-size: 0.58em; }
+.kata-tv-waiting { color: #6d7b91; font-family: 'Oswald', sans-serif; font-size: clamp(1rem, 2vw, 2.2rem); font-weight: 800; letter-spacing: 0.12em; }
+@media (max-width: 760px) {
+    .kata-tv-screen { padding: 0.65rem; }
+    .kata-tv-athlete-layout { grid-template-columns: minmax(0, 1fr) minmax(5rem, 23%); gap: 0.6rem; }
+    .kata-tv-footer { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); }
+    .kata-tv-tournament-logo { display: none; }
+    .kata-tv-category-band { gap: 0.4rem; font-size: clamp(0.78rem, 3vw, 1.1rem); }
+}
+@media (max-height: 560px) {
+    .kata-tv-header { min-height: 9%; }
+    .kata-tv-athlete-layout { flex-basis: 34%; }
+    .kata-tv-side-panel { min-height: 6rem; }
+    .kata-tv-footer { min-height: 23%; }
+}
+
+/* Kumite TV — matte adaptation of the supplied reference layout. */
+.kumite-tv-screen {
+    --kumite-tv-red: #91464c;
+    --kumite-tv-red-dark: #6e343a;
+    --kumite-tv-blue: #496783;
+    --kumite-tv-blue-dark: #354d64;
+    display: grid;
+    grid-template-rows: minmax(4.5rem, 15%) minmax(0, 1fr) auto minmax(9rem, 27%);
+    gap: clamp(0.45rem, 1.4vh, 1.1rem);
+    overflow: hidden;
+    padding: clamp(0.75rem, 2.2vw, 2.25rem);
+    background: #111722;
+    color: #f1f3f5;
+    font-family: 'Oswald', sans-serif;
+}
+.kumite-tv-athlete-header,
+.kumite-tv-score-area {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(1rem, 4vw, 4rem);
+}
+.kumite-tv-athlete-heading {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.4rem;
+    text-transform: uppercase;
+}
+.kumite-tv-ao-heading { align-items: flex-end; text-align: right; }
+.kumite-tv-side-chip {
+    display: block;
+    width: clamp(5rem, 12vw, 12rem);
+    padding: 0.22rem 0.6rem;
+    color: #fff;
+    font-size: clamp(0.65rem, 1.15vw, 1.2rem);
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    text-align: center;
+}
+.kumite-tv-aka-chip { background: var(--kumite-tv-red-dark); }
+.kumite-tv-ao-chip { background: var(--kumite-tv-blue-dark); }
+.kumite-tv-municipality-name {
+    max-width: 100%;
+    overflow: hidden;
+    color: #e5e7eb;
+    font-size: clamp(1rem, 2.5vw, 2.7rem);
+    font-weight: 800;
+    line-height: 1.05;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.kumite-tv-score-area {
+    grid-template-columns: minmax(0, 1fr) minmax(5.5rem, 14vw) minmax(5.5rem, 14vw) minmax(0, 1fr);
+    gap: clamp(0.45rem, 1vw, 1rem);
+    min-height: 0;
+}
+.kumite-tv-athlete {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(0.45rem, 1.2vh, 1rem);
+    align-self: stretch;
+    padding: clamp(0.4rem, 1vw, 1rem) 0;
+}
+.kumite-tv-athlete-aka { text-align: left; }
+.kumite-tv-athlete-ao { align-items: flex-end; text-align: right; }
+.kumite-tv-athlete-name {
+    max-width: 100%;
+    color: #f4f4f5;
+    font-size: clamp(1.15rem, 3.15vw, 3.4rem);
+    font-weight: 800;
+    line-height: 1.12;
+    overflow-wrap: anywhere;
+    text-transform: uppercase;
+}
+.kumite-tv-winner-label {
+    width: fit-content;
+    border: 1px solid #a8a29e;
+    padding: 0.15rem 0.6rem;
+    color: #e7e5e4;
+    font-size: clamp(0.7rem, 1.2vw, 1.25rem);
+    font-weight: 900;
+    letter-spacing: 0.12em;
+}
+.kumite-tv-penalties {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: clamp(0.2rem, 0.45vw, 0.5rem);
+}
+.kumite-tv-penalty-label {
+    flex-basis: 100%;
+    color: #9ca3af;
+    font-family: 'Roboto', sans-serif;
+    font-size: clamp(0.55rem, 0.8vw, 0.8rem);
+    font-weight: 800;
+    letter-spacing: 0.1em;
+}
+.kumite-tv-athlete-ao .kumite-tv-penalties { justify-content: flex-end; }
+.kumite-tv-screen .tv-penalty-indicator {
+    width: clamp(1.45rem, 2.4vw, 2.5rem);
+    height: clamp(1.45rem, 2.4vw, 2.5rem);
+    flex-basis: clamp(1.45rem, 2.4vw, 2.5rem);
+    border: 1px solid #5b6471;
+    border-radius: 0.2rem;
+    background: #252d38;
+    color: #b8bec7;
+    font-size: clamp(0.55rem, 0.85vw, 0.85rem);
+}
+.kumite-tv-screen .tv-penalty-indicator--active {
+    animation: none;
+    border-color: #8b7650;
+    background: #8b7650;
+    color: #171717;
+    box-shadow: none;
+}
+.kumite-tv-shikkaku {
+    border: 1px solid #8a4a4a;
+    border-radius: 0.2rem;
+    padding: 0.25rem 0.4rem;
+    background: #713a3a;
+    color: #f1eaea;
+    font-family: 'Roboto', sans-serif;
+    font-size: clamp(0.55rem, 0.8vw, 0.8rem);
+    font-weight: 900;
+}
+.kumite-tv-score-card {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    aspect-ratio: 1 / 1;
+    align-items: center;
+    justify-content: center;
+    border-radius: clamp(0.35rem, 0.7vw, 0.75rem);
+    color: #f8fafc;
+}
+.kumite-tv-score-aka { background: var(--kumite-tv-red); }
+.kumite-tv-score-ao { background: var(--kumite-tv-blue); }
+.kumite-tv-score-card > span:first-child {
+    font-size: clamp(3.8rem, 10vw, 10rem);
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+.kumite-tv-senshu {
+    position: absolute;
+    right: 0.3rem;
+    bottom: 0.3rem;
+    left: 0.3rem;
+    border: 1px solid rgba(255,255,255,0.45);
+    padding: 0.15rem 0.25rem;
+    color: #fff;
+    font-family: 'Roboto', sans-serif;
+    font-size: clamp(0.55rem, 0.9vw, 0.9rem);
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-align: center;
+}
+.kumite-tv-senshu-aka { background: var(--kumite-tv-red-dark); }
+.kumite-tv-senshu-ao { background: var(--kumite-tv-blue-dark); }
+.kumite-tv-modality { display: flex; align-items: center; justify-content: center; }
+.kumite-tv-modality span {
+    min-width: clamp(8rem, 15vw, 15rem);
+    border: 1px solid #8793a2;
+    padding: 0.15rem 1rem;
+    background: #d1d5db;
+    color: #252b33;
+    font-size: clamp(0.8rem, 1.7vw, 1.7rem);
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-align: center;
+}
+.kumite-tv-footer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(10rem, 1.1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(0.6rem, 2vw, 2rem);
+    border-top: 1px solid #394353;
+    padding-top: clamp(0.6rem, 1.6vh, 1.3rem);
+}
+.kumite-tv-event-meta,
+.kumite-tv-match-meta { display: flex; min-width: 0; flex-direction: column; gap: 0.35rem; }
+.kumite-tv-meta-row { display: flex; min-width: 0; flex-wrap: wrap; align-items: baseline; gap: 0.35rem 0.6rem; }
+.kumite-tv-meta-label {
+    color: #aab2bd;
+    font-size: clamp(0.62rem, 1.15vw, 1.2rem);
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.kumite-tv-meta-value {
+    color: #f1f3f5;
+    font-size: clamp(0.75rem, 1.45vw, 1.55rem);
+    font-weight: 800;
+    text-transform: uppercase;
+}
+.kumite-tv-clock { min-width: 0; text-align: center; }
+.kumite-tv-clock-value {
+    color: #d0b574;
+    font-family: 'Roboto Mono', monospace;
+    font-size: clamp(3rem, 9vw, 8.8rem);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.06em;
+    line-height: 0.95;
+}
+.kumite-tv-clock-warning { color: #b46b6b; }
+.kumite-tv-medical-label {
+    margin-bottom: 0.3rem;
+    color: #d1d5db;
+    font-size: clamp(0.7rem, 1.5vw, 1.4rem);
+    font-weight: 900;
+    letter-spacing: 0.12em;
+}
+.kumite-tv-match-meta { align-items: flex-end; text-align: right; }
+.kumite-tv-round-name {
+    color: #f1f3f5;
+    font-size: clamp(0.9rem, 1.8vw, 1.8rem);
+    font-weight: 900;
+    text-transform: uppercase;
+}
+.kumite-tv-match-number {
+    min-width: clamp(2.5rem, 4vw, 4rem);
+    border: 1px solid #667180;
+    padding: 0.05rem 0.55rem;
+    background: #252d38;
+    color: #f1f3f5;
+    font-size: clamp(1rem, 1.8vw, 1.8rem);
+    font-weight: 900;
+    text-align: center;
+}
+@media (max-width: 760px) {
+    .kumite-tv-screen { grid-template-rows: auto minmax(0, 1fr) auto auto; gap: 0.4rem; padding: 0.65rem; }
+    .kumite-tv-athlete-header { gap: 0.5rem; }
+    .kumite-tv-score-area { grid-template-columns: minmax(0, 1fr) minmax(3.5rem, 15vw) minmax(3.5rem, 15vw) minmax(0, 1fr); gap: 0.35rem; }
+    .kumite-tv-athlete-name { font-size: clamp(0.8rem, 3.4vw, 1.3rem); }
+    .kumite-tv-penalties { gap: 0.15rem; }
+    .kumite-tv-screen .tv-penalty-indicator { width: 1.2rem; height: 1.2rem; flex-basis: 1.2rem; }
+    .kumite-tv-footer { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .kumite-tv-clock { grid-column: 1 / -1; grid-row: 1; }
+    .kumite-tv-event-meta { grid-column: 1; grid-row: 2; }
+    .kumite-tv-match-meta { grid-column: 2; grid-row: 2; }
+}
+@media (max-height: 560px) and (min-width: 761px) {
+    .kumite-tv-screen { grid-template-rows: minmax(3rem, 12%) minmax(0, 1fr) auto minmax(7rem, 24%); }
+    .kumite-tv-score-card { aspect-ratio: 1.25 / 1; }
+}
+
+/* Kumite TV uses the same dark, framed background treatment as Kata TV. */
+.kumite-tv-screen {
+    --kumite-tv-red: #ed1727;
+    --kumite-tv-red-dark: #e31325;
+    --kumite-tv-blue: #0879ed;
+    --kumite-tv-blue-dark: #076bd5;
+    position: relative;
+    isolation: isolate;
+    overflow: visible;
+    border: clamp(3px, 0.35vw, 6px) solid #07327a;
+    border-radius: clamp(0.75rem, 1.3vw, 1.5rem);
+    background: radial-gradient(ellipse at 50% 40%, #091a36 0%, #030a18 68%, #01050d 100%) !important;
+    box-shadow: inset 0 0 2rem rgba(0, 87, 255, 0.18), 0 0 1.2rem rgba(0, 87, 255, 0.25);
+}
+.kumite-tv-screen::before {
+    position: absolute;
+    z-index: -1;
+    inset: clamp(0.4rem, 1vw, 1rem);
+    border: clamp(2px, 0.25vw, 4px) solid #0878ff;
+    box-shadow: 0 0 0.9rem #35a8ff, inset 0 0 1rem rgba(0, 95, 255, 0.15);
+    content: "";
+    pointer-events: none;
+}
+.kumite-tv-side-chip {
+    height: clamp(1.5rem, 3.2vw, 3.2rem);
+    border-radius: 0.08rem;
+    box-shadow: 0 0 0.8rem rgba(255,255,255,0.08);
+}
+.kumite-tv-aka-chip { background: var(--kumite-tv-red); }
+.kumite-tv-ao-chip { background: var(--kumite-tv-blue); }
+.kumite-tv-municipality-name {
+    color: #f7f8fc;
+    font-size: clamp(1.2rem, 2.7vw, 6rem);
+    text-shadow: 0 1px 4px rgba(0,0,0,0.35);
+}
+.kumite-tv-athlete-name { display: flex; flex-direction: column; gap: 0.15em; }
+.kumite-tv-last-name {
+    color: #f7f8fc;
+    font-size: clamp(1.35rem, 3.1vw, 7rem);
+    font-weight: 800;
+    line-height: 1.04;
+    text-transform: uppercase;
+}
+.kumite-tv-first-name {
+    color: #e2e7ef;
+    font-size: clamp(1rem, 2.25vw, 5rem);
+    font-weight: 600;
+    line-height: 1.05;
+    text-transform: uppercase;
+}
+.kumite-tv-score-card {
+    border-radius: clamp(0.35rem, 0.8vw, 1rem);
+    box-shadow: 0 0 1.25rem rgba(255,255,255,0.08);
+}
+.kumite-tv-score-aka {
+    background: var(--kumite-tv-red);
+    box-shadow: 0 0 1.25rem rgba(237,23,39,0.48), 0 0 2.8rem rgba(237,23,39,0.22);
+}
+.kumite-tv-score-ao {
+    background: var(--kumite-tv-blue);
+    box-shadow: 0 0 1.25rem rgba(8,121,237,0.5), 0 0 2.8rem rgba(8,121,237,0.24);
+}
+.kumite-tv-score-card > span:first-child {
+    font-size: clamp(4rem, 10vw, 24rem);
+    text-shadow: 0 1px 3px rgba(255,255,255,0.25);
+}
+.kumite-tv-senshu {
+    right: 0.45rem;
+    bottom: 0.45rem;
+    left: 0.45rem;
+    padding: 0.18em 0.3em;
+    border-color: rgba(255,255,255,0.55);
+    font-size: clamp(0.55rem, 0.85vw, 1.5rem);
+}
+.kumite-tv-modality {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: clamp(0.5rem, 2.4vw, 2.5rem);
+}
+.kumite-tv-modality::before,
+.kumite-tv-modality::after {
+    height: 2px;
+    align-self: center;
+    background: #7195cf;
+    box-shadow: 0 0 0.4rem rgba(83,139,232,0.48);
+    content: "";
+}
+.kumite-tv-modality span {
+    min-width: clamp(8rem, 14vw, 28rem);
+    border: 2px solid #b8d6ff;
+    border-radius: 0.08rem;
+    background: rgba(161,199,244,0.9);
+    box-shadow: 0 0 0.65rem rgba(113,169,241,0.55);
+    color: #101a2b;
+    font-size: clamp(0.85rem, 1.7vw, 3.5rem);
+}
+.kumite-tv-footer {
+    grid-template-columns: minmax(0, 1.18fr) minmax(0, 1.2fr) minmax(0, 1fr);
+    border-top: 0;
+    padding-top: 0;
+}
+.kumite-tv-event-info {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: clamp(0.5rem, 1.6vw, 1.5rem);
+}
+.kumite-tv-event-meta { flex: 1; gap: clamp(0.25rem, 0.6vh, 0.65rem); }
+.kumite-tv-meta-row { display: block; }
+.kumite-tv-meta-label {
+    display: block;
+    color: #edf1f8;
+    font-size: clamp(0.65rem, 1.2vw, 2.5rem);
+    font-weight: 800;
+    line-height: 1.12;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.32);
+}
+.kumite-tv-meta-value {
+    display: block;
+    color: #f4f5f7;
+    font-size: clamp(0.8rem, 1.35vw, 2.8rem);
+    font-weight: 700;
+    line-height: 1.12;
+}
+.kumite-tv-karate-logo {
+    display: grid;
+    width: clamp(4.25rem, 9vw, 18rem);
+    aspect-ratio: 1;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 0.45rem;
+    background: #fff;
+    color: #090b0e;
+}
+.kumite-tv-karate-logo i { font-size: clamp(2.25rem, 5vw, 8rem); }
+.kumite-tv-clock-value {
+    color: #ffeb00;
+    font-size: clamp(3.5rem, 8.7vw, 20rem);
+    letter-spacing: -0.065em;
+    text-shadow: 0 0 0.45rem rgba(255,235,0,0.7), 0 0 1.2rem rgba(255,210,0,0.38);
+}
+.kumite-tv-clock-value small {
+    display: inline-block;
+    margin-left: 0.04em;
+    font-size: 0.48em;
+    letter-spacing: -0.04em;
+    vertical-align: 0.18em;
+}
+.kumite-tv-clock-warning { color: #ffeb00; }
+.kumite-tv-medical-label { color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.4); }
+.kumite-tv-match-meta { gap: clamp(0.35rem, 1vh, 1rem); }
+.kumite-tv-round-name,
+.kumite-tv-meta-label,
+.kumite-tv-match-number { text-shadow: 0 1px 4px rgba(0,0,0,0.35); }
+.kumite-tv-round-name { color: #f4f5f7; font-size: clamp(1rem, 1.8vw, 4rem); }
+.kumite-tv-round-value {
+    color: #f2f4f8;
+    font-size: clamp(0.8rem, 1.35vw, 3rem);
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.kumite-tv-match-number {
+    min-width: clamp(2.6rem, 4vw, 8rem);
+    border-color: #77849a;
+    border-radius: 0.08rem;
+    background: rgba(18,26,39,0.68);
+    color: #fff;
+    font-size: clamp(1rem, 1.8vw, 4rem);
+}
+@media (max-width: 760px) {
+    .kumite-tv-screen { padding: 0.65rem; }
+    .kumite-tv-footer { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .kumite-tv-event-info { grid-column: 1; grid-row: 2; }
+    .kumite-tv-karate-logo { width: clamp(3rem, 13vw, 4.5rem); }
+    .kumite-tv-meta-label { font-size: clamp(0.5rem, 2vw, 0.75rem); }
+    .kumite-tv-meta-value { font-size: clamp(0.62rem, 2.3vw, 0.9rem); }
+    .kumite-tv-clock-value { font-size: clamp(2.8rem, 12vw, 5.5rem); }
+    .kumite-tv-round-name { font-size: clamp(0.7rem, 2.7vw, 1.1rem); }
+}
+
+/* Readability controls: viewport-based sizes keep the broadcast layout adjustable. */
+.kumite-tv-screen {
+    --kumite-identity-size: clamp(1.3rem, 2.8vw, 5rem);
+    --kumite-athlete-last-size: clamp(1.8rem, 4.2vw, 7rem);
+    --kumite-athlete-first-size: clamp(1.3rem, 3vw, 5rem);
+    --kumite-penalty-label-size: clamp(1rem, 1.35vw, 2.2rem);
+    --kumite-penalty-box-size: clamp(2.2rem, 3.2vw, 4.2rem);
+    --kumite-info-label-size: clamp(1rem, 1.55vw, 2.6rem);
+    --kumite-info-value-size: clamp(1.1rem, 2vw, 3.6rem);
+    --kumite-clock-size: clamp(5rem, 11vw, 24rem);
+}
+.kumite-tv-municipality-name { font-size: var(--kumite-identity-size); }
+.kumite-tv-last-name { font-size: var(--kumite-athlete-last-size); }
+.kumite-tv-first-name { font-size: var(--kumite-athlete-first-size); }
+.kumite-tv-penalty-label { font-size: var(--kumite-penalty-label-size); }
+.kumite-tv-screen .tv-penalty-indicator {
+    width: var(--kumite-penalty-box-size);
+    height: var(--kumite-penalty-box-size);
+    flex-basis: var(--kumite-penalty-box-size);
+    font-size: clamp(0.8rem, 1.15vw, 1.8rem);
+}
+.kumite-tv-meta-label { font-size: var(--kumite-info-label-size); }
+.kumite-tv-meta-value,
+.kumite-tv-weight-value { font-size: var(--kumite-info-value-size); }
+.kumite-tv-weight-value {
+    color: #f4f5f7;
+    font-weight: 800;
+    line-height: 1.12;
+}
+.kumite-tv-clock-value {
+    color: #fff;
+    font-size: var(--kumite-clock-size);
+    text-shadow: none;
+}
+.kumite-tv-clock-value small { font-size: 0.38em; }
+.kumite-tv-clock-running {
+    color: #ffeb00;
+    text-shadow: 0 0 0.45rem rgba(255,235,0,0.7), 0 0 1.2rem rgba(255,210,0,0.38);
+}
+.kumite-tv-clock-warning {
+    color: #f12635;
+    text-shadow: 0 0 0.4rem rgba(241,38,53,0.55);
+}
+.kumite-tv-round-name,
+.kumite-tv-round-value,
+.kumite-tv-match-meta .kumite-tv-meta-label,
+.kumite-tv-match-number { font-size: var(--kumite-info-label-size); }
+.kumite-tv-round-value,
+.kumite-tv-match-number { font-size: var(--kumite-info-value-size); }
+@media (max-width: 760px) {
+    .kumite-tv-screen {
+        --kumite-identity-size: clamp(0.9rem, 3.8vw, 1.4rem);
+        --kumite-athlete-last-size: clamp(1rem, 4.4vw, 1.65rem);
+        --kumite-athlete-first-size: clamp(0.8rem, 3.4vw, 1.25rem);
+        --kumite-penalty-label-size: clamp(0.62rem, 2.5vw, 0.95rem);
+        --kumite-penalty-box-size: clamp(1.45rem, 5vw, 1.9rem);
+        --kumite-info-label-size: clamp(0.62rem, 2.5vw, 0.95rem);
+        --kumite-info-value-size: clamp(0.72rem, 2.8vw, 1.05rem);
+        --kumite-clock-size: clamp(3.5rem, 13vw, 6rem);
+    }
+    .kumite-tv-screen .tv-penalty-indicator { font-size: clamp(0.55rem, 1.8vw, 0.75rem); }
+}
+
+/* Senshu marker and full-width penalty strip below the two score panels. */
+.kumite-tv-score-card .senshu-triangle {
+    width: 40%;
+    height: 40%;
+    right: 0;
+    bottom: 0;
+}
+.kumite-tv-score-card .senshu-text { font-size: clamp(1.2rem, 2.2vw, 3rem); }
+.kumite-tv-penalties-bar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(0.35rem, 1.2vw, 1.3rem);
+    min-width: 0;
+}
+.kumite-tv-penalty-group {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: clamp(0.2rem, 0.55vw, 0.65rem);
+    padding-top: 0.25rem;
+}
+.kumite-tv-penalty-group-aka { justify-content: flex-start; border-top: 3px solid #ed1727; }
+.kumite-tv-penalty-group-ao { justify-content: flex-end; border-top: 3px solid #0879ed; }
+.kumite-tv-penalty-box {
+    display: grid;
+    width: clamp(3rem, 5vw, 10rem);
+    height: clamp(2.5rem, 5vh, 8rem);
+    flex: 0 0 clamp(3rem, 5vw, 10rem);
+    place-items: center;
+    border: 1px solid #596577;
+    border-radius: 0.25rem;
+    background: #182231;
+    color: #e5e7eb;
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(0.8rem, 1.35vw, 2rem);
+    font-weight: 800;
+    line-height: 1;
+}
+.kumite-tv-penalty-active {
+    border-color: #fff200;
+    background: #fff200;
+    color: #101318;
+}
+.kumite-tv-penalties-label {
+    min-width: clamp(8rem, 15vw, 24rem);
+    padding: 0.32em 0.9em;
+    border: 2px solid #b8d6ff;
+    background: rgba(161,199,244,0.92);
+    box-shadow: 0 0 0.65rem rgba(113,169,241,0.55);
+    color: #101a2b;
+    font-size: clamp(0.9rem, 1.65vw, 2.8rem);
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-align: center;
+}
+.kumite-tv-penalties-bar .kumite-tv-shikkaku {
+    display: grid;
+    width: clamp(3rem, 5vw, 10rem);
+    height: clamp(2.5rem, 5vh, 8rem);
+    flex: 0 0 auto;
+    place-items: center;
+    padding: 0;
+    font-size: clamp(0.9rem, 1.5vw, 2rem);
+}
+.kumite-tv-category-value {
+    color: #f4f5f7;
+    font-size: var(--kumite-info-value-size);
+    font-weight: 800;
+    line-height: 1.12;
+    text-transform: uppercase;
+}
+.kumite-tv-weight-value { margin-top: 0.1rem; }
+@media (max-width: 760px) {
+    .kumite-tv-penalties-bar { grid-template-columns: 1fr; gap: 0.35rem; }
+    .kumite-tv-penalties-label { grid-row: 1; justify-self: center; }
+    .kumite-tv-penalty-group-aka { grid-row: 2; }
+    .kumite-tv-penalty-group-ao { grid-row: 3; }
+    .kumite-tv-penalty-box,
+    .kumite-tv-penalties-bar .kumite-tv-shikkaku { height: 1.5rem; }
 }
 
 /* Brackets */

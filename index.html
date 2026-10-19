@@ -136,7 +136,7 @@
             </div>
         </nav>
 
-        <main class="flex-1 relative overflow-hidden bg-gray-50">
+        <main class="flex-1 relative overflow-hidden" :class="view === 'SCOREBOARD' && currentMode === 'KUMITE' ? 'bg-black' : 'bg-gray-50'">
 
             <div v-if="isLoading"
                 class="absolute inset-0 z-[200] bg-white bg-opacity-90 flex flex-col items-center justify-center">
@@ -442,6 +442,26 @@
                     <span v-if="!tournamentKataJudges" class="text-sm text-amber-700 font-bold">Elija 5 o 7 antes de generar gráficas.</span>
                     <span v-else-if="kataJudgeConfigLocked" class="text-sm text-gray-600">Configuración fijada para este torneo.</span>
                     <button @click="beginNewKataTournament" class="ml-auto border border-indigo-700 text-indigo-800 rounded px-3 py-2 font-bold text-sm">Nuevo torneo: configurar jueces</button>
+                </div>
+                <div class="max-w-7xl mx-auto w-full mb-4 bg-white p-4 rounded-xl shadow border border-blue-200 flex flex-wrap items-center gap-4">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                        <img v-if="currentEvent?.logoDataUrl" :src="currentEvent.logoDataUrl" alt="Logo del torneo"
+                            class="h-14 w-14 rounded-lg border border-gray-200 object-contain bg-white p-1">
+                        <div v-else class="h-14 w-14 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-400">
+                            <i class="fas fa-image text-xl"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="font-black text-gray-800">Logo de Kata TV</div>
+                            <div class="truncate text-sm text-gray-500">{{ currentEvent?.name || 'Torneo Local' }} · PNG, JPG o SVG</div>
+                        </div>
+                    </div>
+                    <input ref="eventLogoInput" type="file" accept="image/png,image/jpeg,image/svg+xml,.png,.jpg,.jpeg,.svg"
+                        class="hidden" @change="handleEventLogoUpload">
+                    <button @click="eventLogoInput?.click()" class="rounded-lg bg-blue-700 px-4 py-2 font-bold text-white hover:bg-blue-800">
+                        <i class="fas fa-upload mr-2"></i>{{ currentEvent?.logoDataUrl ? 'CAMBIAR LOGO' : 'CARGAR LOGO' }}
+                    </button>
+                    <button v-if="currentEvent?.logoDataUrl" @click="removeEventLogo"
+                        class="rounded-lg border border-red-200 px-4 py-2 font-bold text-red-700 hover:bg-red-50">QUITAR</button>
                 </div>
                 <div class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
                     <div class="col-span-1 lg:col-span-4 space-y-6">
@@ -815,14 +835,18 @@
                         class="text-yellow-800 hover:underline text-xs font-bold">Cancelar / Volver</button>
                 </div>
 
-                <div v-if="currentMode === 'KATA'" class="max-w-7xl w-full mx-auto flex gap-6 items-start">
-                    <div class="bg-white p-6 rounded-2xl shadow-xl flex-1 border border-gray-200">
-                        <div class="mb-6 border-b pb-4 border-gray-100 flex items-center justify-between">
-                            <div class="flex items-center justify-center gap-4"><label
-                                    class="text-gray-600 font-bold uppercase text-sm">Categoría de
-                                    Visualización:</label><select v-model="kataState.selectedCategoryRule"
+                <div v-if="currentMode === 'KATA'" class="kata-operator-layout max-w-7xl w-full mx-auto flex gap-6 items-start">
+                    <div class="kata-operator-main bg-white p-6 rounded-2xl shadow-xl flex-1 border border-gray-200">
+                        <div class="kata-operator-header mb-6 border-b pb-4 border-gray-100 flex items-center justify-between">
+                            <div>
+                                <div class="kata-operator-eyebrow"><i class="fas fa-flag-checkered"></i> {{ globalState.eventName || 'TORNEO LOCAL' }} <span>·</span> TATAMI {{ globalState.tatami || '1' }}</div>
+                                <h1 class="kata-operator-title">Operador de Kata</h1>
+                            </div>
+                            <div class="kata-category-control flex items-center justify-center gap-3">
+                                <label class="text-gray-600 font-bold uppercase text-xs">Categoría de visualización</label>
+                                <select v-model="kataState.selectedCategoryRule"
                                     @change="updateKataCategoryDisplay"
-                                    class="bg-white border border-gray-300 rounded p-1 font-bold">
+                                    class="bg-white border border-gray-300 rounded p-2 font-bold">
                                     <option v-for="opt in kataCategoryOptions" :value="opt" :key="opt.label">
                                         {{opt.label}}
                                     </option>
@@ -830,12 +854,12 @@
 
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                            <div><label class="block text-lg font-bold text-black mb-1 text-center">Competidor {{
+                        <div class="kata-operator-fields grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            <div class="kata-operator-field"><label class="block text-sm font-black uppercase text-gray-600 mb-2">Competidor {{
                                     kataState.matchStep }}</label><input v-model="kataState.competitorName"
                                     class="kata-input-box text-lg"></div>
-                            <div class="relative"><label
-                                    class="block text-lg font-bold text-black mb-1 text-center">Municipio</label>
+                            <div class="kata-operator-field relative"><label
+                                    class="block text-sm font-black uppercase text-gray-600 mb-2">Municipio</label>
                                 <div class="relative w-full"><input type="text" v-model="municipioSearchQuery"
                                         @focus="isMunicipioDropdownOpen = true" @blur="closeMunicipioDropdown"
                                         class="kata-input-box text-lg bg-white w-full placeholder-gray-400"
@@ -848,22 +872,33 @@
                                     </ul>
                                 </div>
                             </div>
-                            <div class="relative"><label
-                                    class="block text-lg font-bold text-black mb-1 text-center">Kata</label>
+                            <div class="kata-operator-field relative"><label
+                                    class="block text-sm font-black uppercase text-gray-600 mb-2">Kata</label>
                                 <div class="relative w-full"><input type="text" v-model="kataSearchQuery"
                                         @focus="isKataDropdownOpen = true" @blur="closeKataDropdown"
                                         class="kata-input-box text-lg bg-white w-full placeholder-gray-400"
                                         placeholder="Buscar Kata...">
                                     <ul v-if="isKataDropdownOpen"
                                         class="absolute z-50 w-full bg-white border-2 border-black rounded-lg mt-1 max-h-60 overflow-y-auto shadow-xl text-left dropdown-scroll">
-                                        <li v-for="k in filteredKatas" @mousedown="selectKata(k)"
-                                            class="p-2 hover:bg-blue-100 cursor-pointer font-bold text-lg border-b border-gray-100 text-gray-800">
-                                            {{ k }}</li>
+                                        <li v-for="k in filteredKatas" :key="k.id" @mousedown="selectKata(k)"
+                                            class="flex items-center gap-3 p-2 hover:bg-blue-100 cursor-pointer border-b border-gray-100 text-gray-800">
+                                            <span class="rounded bg-gray-900 px-2 py-1 font-mono font-black text-white">{{ k.id }}</span>
+                                            <span class="font-bold text-lg">{{ k.name }}</span>
+                                        </li>
                                     </ul>
                                 </div>
                             </div>
                         </div>
-                        <div class="flex flex-wrap items-center justify-center gap-4 mb-8 border-b pb-6 border-gray-200">
+                        <div v-if="!activeMatchId" class="kata-operator-side-select mb-6 flex flex-wrap items-center justify-center gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
+                            <span class="text-xs font-black uppercase tracking-wider text-gray-600">Lado en Kata TV</span>
+                            <button @click="kataState.freeSide = 'aka'; kataState.tvSide = 'aka'" :aria-pressed="kataState.freeSide === 'aka'"
+                                :class="kataState.freeSide === 'aka' ? 'bg-red-800 text-white' : 'bg-white text-red-800 border border-red-200'"
+                                class="rounded-lg px-5 py-2 font-black transition">AKA · ROJO</button>
+                            <button @click="kataState.freeSide = 'ao'; kataState.tvSide = 'ao'" :aria-pressed="kataState.freeSide === 'ao'"
+                                :class="kataState.freeSide === 'ao' ? 'bg-slate-700 text-white' : 'bg-white text-slate-700 border border-slate-300'"
+                                class="rounded-lg px-5 py-2 font-black transition">AO · AZUL</button>
+                        </div>
+                        <div class="kata-operator-controls flex flex-wrap items-center justify-center gap-4 mb-8 border-b pb-6 border-gray-200">
                             <button @click="toggleKataTimer" :disabled="!kataJudgeCount || kataState.timerMode === 'team'"
                                 :class="kataState.timerMode === 'preparation' && kataState.timerRunning ? 'bg-red-100 text-red-700 border-red-500' : 'bg-blue-50 text-blue-700 border-blue-500'"
                                 class="border-2 font-bold text-lg px-6 py-3 rounded-lg flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"><i
@@ -874,7 +909,7 @@
                                 class="border-2 font-bold text-lg px-6 py-3 rounded-lg flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"><i
                                     class="fas fa-stopwatch"></i> {{ teamTimerBtnText }}</button>
 
-                            <div v-if="kataState.showTimer" class="font-mono text-3xl font-bold text-gray-800" aria-label="Tiempo kata">
+                            <div v-if="kataState.showTimer" class="kata-operator-timer font-mono text-3xl font-bold text-gray-800" aria-label="Tiempo kata">
                                 {{ formatTime(kataState.timer) }}
                             </div>
 
@@ -889,7 +924,7 @@
                             </div>
                             <div v-else>Seleccione la cantidad en ADMIN.</div>
                         </div>
-                        <div v-else class="mb-8 overflow-x-auto">
+                        <div v-else class="kata-operator-judges mb-8 overflow-x-auto">
                             <div class="flex items-center justify-center gap-3 mb-4">
                                 <span class="font-bold text-gray-700">{{ kataJudgeCount }} jueces</span>
                                 <template v-if="!activeMatchId">
@@ -913,9 +948,9 @@
                                         v-model.number="kataState[side === 'aka' ? 'akaScores' : 'aoScores'][i - 1]"
                                         :disabled="!!activeMatchId && kataState.matchStep === 1 && side === 'ao'"
                                         :aria-label="`${side === 'aka' ? 'AKA' : 'AO'} juez ${i}`"
-                                         :class="kataJudgeVote(i - 1) === 'TIE' ? 'kata-tie-score bg-yellow-100 text-gray-900 border-amber-500' : (kataJudgeVote(i - 1) === (side === 'aka' ? 'AKA' : 'AO') ? (side === 'aka' ? 'bg-red-600 text-white border-red-800' : 'bg-blue-600 text-white border-blue-800') : 'bg-white text-gray-900 border-black')"
+                                         :class="kataJudgeVote(i - 1) === 'TIE' ? 'kata-tie-score bg-amber-100 text-gray-900 border-amber-500' : (kataJudgeVote(i - 1) === (side === 'aka' ? 'AKA' : 'AO') ? (side === 'aka' ? 'bg-red-700 text-white border-red-900' : 'bg-slate-700 text-white border-slate-900') : 'bg-white text-gray-900 border-black')"
                                          :aria-invalid="kataJudgeVote(i - 1) === 'TIE'"
-                                         class="w-20 h-16 border-4 rounded-lg text-center text-3xl font-bold focus:ring-2 focus:ring-yellow-400 disabled:opacity-60">
+                                         class="w-20 h-16 border-2 rounded-lg text-center text-3xl font-bold disabled:opacity-60">
                                 </div>
                             </div>
                         </div>
@@ -926,16 +961,16 @@
                                 <div v-else class="flex gap-2">
                                     <button v-if="activeMatchId && kataState.matchStep === 1"
                                         @click="nextKataCompetitor"
-                                        class="bg-blue-600 text-white font-bold text-lg px-6 py-3 rounded-lg hover:bg-blue-700 shadow-lg flex items-center gap-2">SIGUIENTE
+                                        class="bg-blue-700 text-white font-bold text-lg px-6 py-3 rounded-lg hover:bg-blue-800 flex items-center gap-2">SIGUIENTE
                                         COMPETIDOR <i class="fas fa-arrow-right"></i></button>
 
                                     <button v-if="activeMatchId && kataState.matchStep === 2 && !kataState.showVotes"
                                         @click="calculateVotes" :disabled="!kataVotesReady"
-                                        class="bg-purple-600 text-white font-bold text-lg px-6 py-3 rounded-lg hover:bg-purple-700 shadow-lg flex items-center gap-2"><i
+                                        class="bg-purple-800 text-white font-bold text-lg px-6 py-3 rounded-lg hover:bg-purple-900 flex items-center gap-2"><i
                                             class="fas fa-flag"></i> MOSTRAR VOTOS</button>
 
                                     <button v-if="activeMatchId && kataState.matchStep === 2" @click="finishKataMatch" :disabled="!kataVotesReady"
-                                        class="bg-yellow-500 text-black font-bold text-lg px-6 py-3 rounded-lg hover:bg-yellow-400 shadow-lg flex items-center gap-2"><i
+                                        class="bg-amber-600 text-white font-bold text-lg px-6 py-3 rounded-lg hover:bg-amber-700 flex items-center gap-2"><i
                                             class="fas fa-trophy"></i> FINALIZAR MATCH</button>
                                     <button @click="resetKata"
                                         class="border-4 border-gray-400 text-gray-600 font-bold text-xl px-6 py-3 rounded-lg">RESET</button>
@@ -945,19 +980,17 @@
                     </div>
 
                     <div v-if="kataVotesReady && (!activeMatchId || kataState.showVotes)"
-                        class="bg-white p-6 rounded-2xl shadow-xl w-80 border border-gray-200 flex flex-col items-center">
+                        class="kata-operator-votes bg-white p-6 rounded-2xl shadow-xl w-80 border border-gray-200 flex flex-col items-center">
                         <h2 class="text-2xl font-black uppercase mb-6 tracking-widest text-gray-800">Votos</h2>
                         <div class="flex flex-col items-center mb-6">
                             <span class="text-gray-500 font-bold uppercase text-sm mb-1">AKA</span>
-                            <div class="text-[5rem] font-black leading-none text-red-600"
-                                style="-webkit-text-stroke: 3px black; text-shadow: 2px 2px 0 #000;">
+                            <div class="kata-operator-vote-count text-[5rem] font-black leading-none text-red-700">
                                 {{ kataState.akaVotes }}
                             </div>
                         </div>
                         <div class="flex flex-col items-center mb-8">
                             <span class="text-gray-500 font-bold uppercase text-sm mb-1">AO</span>
-                            <div class="text-[5rem] font-black leading-none text-blue-600"
-                                style="-webkit-text-stroke: 3px black; text-shadow: 2px 2px 0 #000;">
+                            <div class="kata-operator-vote-count text-[5rem] font-black leading-none text-slate-700">
                                 {{ kataState.aoVotes }}
                             </div>
                         </div>
@@ -978,7 +1011,7 @@
                         </div>
                     </div>
                      <div v-if="kataTieNotice"
-                         class="bg-amber-50 border-2 border-amber-500 text-amber-900 rounded-xl p-4 shadow font-black text-center max-w-md">
+                         class="kata-operator-tie bg-amber-50 border-2 border-amber-500 text-amber-900 rounded-xl p-4 shadow font-black text-center max-w-md">
                          EMPATE DE CALIFICACIÓN: corrija los jueces {{ kataTieJudgeNumbers.map(j => 'J' + j).join(', ') }} antes de mostrar votos.
                      </div>
                  </div>
@@ -1313,152 +1346,167 @@
             </div>
 
             <div v-if="view === 'SCOREBOARD'" class="h-full bg-black relative flex flex-col p-4 text-white">
-                <div v-if="currentMode === 'KATA'" class="flex flex-col h-full">
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="text-white text-2xl font-oswald uppercase leading-tight">
-                            <div class="text-yellow-400 font-bold">{{ kataState.categoryName }}</div>
-                            <div>{{ kataState.modalityName }}</div>
+                <div v-if="currentMode === 'KATA'" class="kata-tv-screen flex flex-col h-full overflow-hidden">
+                    <header class="kata-tv-header flex items-center justify-between gap-6">
+                        <div class="kata-tv-tatami">
+                            <span class="kata-tv-tatami-label">TATAMI</span>
+                            <span class="kata-tv-tatami-number">{{ globalState.tatami || '1' }}</span>
                         </div>
-                        <div class="flex flex-col items-center">
-                            <div class="bg-green-600 text-white font-bold text-4xl px-6 py-1 shadow-lg">{{
-                                globalState.tatami }}</div>
+                        <div class="kata-tv-event-name">
+                            {{ globalState.eventName || 'TORNEO LOCAL' }}
                         </div>
-                        <div class="text-white text-4xl font-bold font-oswald">AKT</div>
+                    </header>
+
+                    <div class="kata-tv-category-band" aria-label="Categoría y división">
+                        <span>{{ kataState.categoryName }}</span>
+                        <span class="kata-tv-category-divider">·</span>
+                        <span>{{ kataState.modalityName }}</span>
                     </div>
-                    <div
-                        class="text-center text-white text-6xl font-bold font-oswald uppercase mb-8 mt-4 tracking-wide">
-                        {{ kataState.kataName.includes('-') ? kataState.kataName.substring(kataState.kataName.indexOf('-') + 1).trim() : kataState.kataName }}</div>
-                    <div class="flex items-center justify-center w-full gap-4 px-8 mb-8">
-                        <div class="flex-1 flex flex-col gap-2 max-w-4xl">
-                            <div
-                                class="border-2 border-white rounded-lg bg-black px-8 py-6 flex flex-col justify-center">
-                                <div
-                                    class="text-white text-5xl font-black uppercase font-oswald mb-2 tracking-wide truncate">
-                                    {{ kataState.competitorName }}</div>
+
+                    <main class="kata-tv-athlete-layout">
+                        <section class="kata-tv-athlete-info" aria-label="Competidor">
+                            <h1 class="kata-tv-athlete-name">{{ kataState.competitorName || 'ESPERANDO COMPETIDOR' }}</h1>
+                            <div class="kata-tv-municipality">
+                                <div class="kata-tv-municipality-badge" aria-label="Identificador municipal">
+                                    <span>{{ kataState.countryCode || '---' }}</span>
+                                </div>
+                                <div class="kata-tv-municipality-text">
+                                    <span class="kata-tv-field-label">MUNICIPIO</span>
+                                    <span class="kata-tv-municipality-name">{{ kataState.countryName || 'SIN MUNICIPIO' }}</span>
+                                </div>
                             </div>
-                            <div class="border-2 border-white rounded-lg bg-black px-8 py-3">
-                                <div class="text-white text-3xl font-bold uppercase font-oswald tracking-wider">{{
-                                    kataState.countryName }}</div>
+                        </section>
+                        <div class="kata-tv-side-panel" :class="kataDisplaySide === 'aka' ? 'kata-tv-side-aka' : 'kata-tv-side-ao'"
+                            :aria-label="kataDisplaySide === 'aka' ? 'Competidor AKA, rojo' : 'Competidor AO, azul'">
+                            <span class="kata-tv-side-label">{{ kataDisplaySide === 'aka' ? 'AKA' : 'AO' }}</span>
+                        </div>
+                    </main>
+
+                    <footer class="kata-tv-footer">
+                        <div class="kata-tv-kata-block" aria-label="Kata seleccionado">
+                            <span class="kata-tv-field-label">KATA</span>
+                            <span class="kata-tv-kata-number">{{ currentKataDisplay.number || '---' }}</span>
+                            <span class="kata-tv-kata-name">{{ currentKataDisplay.name || 'SIN KATA' }}</span>
+                        </div>
+
+                        <div class="kata-tv-live-result">
+                            <div v-if="kataState.showTimer" class="kata-tv-timer"
+                                :class="[kataState.timer <= 15000 ? 'text-red-500' : 'text-yellow-300', { 'kata-timer-warning': kataState.timerRunning && kataState.timer <= 15000 }]">
+                                {{ formatTime(kataState.timer) }}
                             </div>
-                        </div>
-                        <div
-                            class="bg-white text-black rounded-2xl w-64 h-64 flex items-center justify-center shadow-xl">
-                            <span class="text-6xl font-black uppercase">{{ kataState.countryCode }}</span>
-                        </div>
-                    </div>
-                    <div class="mt-auto mb-8 text-center h-48 flex items-center justify-center">
-                        <div v-if="kataState.showTimer"
-                            class="text-[12rem] leading-none font-bold font-mono tracking-tighter"
-                            :class="[kataState.timer <= 15000 ? 'text-red-600' : 'text-yellow-400', { 'kata-timer-warning': kataState.timerRunning && kataState.timer <= 15000 }]">
-                            {{ formatTime(kataState.timer) }}</div>
-                        <div v-else-if="kataState.tvVotesVisible" class="flex justify-center gap-8 w-full" aria-label="Votos totales de kata">
-                            <div v-for="side in ['aka', 'ao']" :key="side"
-                                :class="side === 'aka' ? 'bg-red-700' : 'bg-blue-700'"
-                                class="w-80 rounded-2xl px-6 py-2 text-white text-center shadow-xl">
-                                <div class="text-xl font-black uppercase">{{ side === 'aka' ? 'AKA' : 'AO' }}</div>
-                                <div v-if="kataState[side === 'aka' ? 'tvAkaName' : 'tvAoName']" class="text-lg font-bold truncate">
-                                    {{ kataState[side === 'aka' ? 'tvAkaName' : 'tvAoName'] }}</div>
-                                <div class="text-7xl font-black leading-tight">{{ kataState[side === 'aka' ? 'tvAkaVotes' : 'tvAoVotes'] }}</div>
-                                <div v-if="kataState.tvWinner === side" class="text-lg font-black uppercase">GANADOR</div>
+                            <div v-else-if="kataState.tvVotesVisible" class="kata-tv-votes" aria-label="Votos totales de kata">
+                                <div v-for="side in ['aka', 'ao']" :key="side" class="kata-tv-vote-card"
+                                    :class="side === 'aka' ? 'kata-tv-side-aka' : 'kata-tv-side-ao'">
+                                    <span class="kata-tv-vote-label">{{ side === 'aka' ? 'AKA' : 'AO' }}</span>
+                                    <span class="kata-tv-vote-name">{{ kataState[side === 'aka' ? 'tvAkaName' : 'tvAoName'] }}</span>
+                                    <span class="kata-tv-vote-number">{{ kataState[side === 'aka' ? 'tvAkaVotes' : 'tvAoVotes'] }}</span>
+                                    <span v-if="kataState.tvWinner === side" class="kata-tv-vote-winner">GANADOR</span>
+                                </div>
                             </div>
+                            <div v-else-if="kataState.tvWinner" class="kata-tv-winner"
+                                :class="kataState.tvWinner === 'aka' ? 'text-red-400' : 'text-blue-400'">
+                                GANADOR {{ kataState.tvWinner === 'aka' ? 'AKA' : 'AO' }}
+                                <span>{{ kataState[kataState.tvWinner === 'aka' ? 'tvAkaName' : 'tvAoName'] }}</span>
+                            </div>
+                            <div v-else class="kata-tv-waiting">EN ESPERA</div>
                         </div>
-                        <div v-else-if="kataState.tvWinner" class="text-5xl font-black uppercase"
-                            :class="kataState.tvWinner === 'aka' ? 'text-red-500' : 'text-blue-500'">
-                            GANADOR {{ kataState.tvWinner === 'aka' ? 'AKA' : 'AO' }}
-                            <span v-if="kataState[kataState.tvWinner === 'aka' ? 'tvAkaName' : 'tvAoName']" class="block text-3xl text-white mt-2">
-                                {{ kataState[kataState.tvWinner === 'aka' ? 'tvAkaName' : 'tvAoName'] }}
-                            </span>
+
+                        <div class="kata-tv-tournament-logo" aria-label="Logo del torneo">
+                            <img v-if="kataState.tvTournamentLogo" :src="kataState.tvTournamentLogo" :alt="`Logo ${globalState.eventName}`">
+                            <img v-else src="./28-logo.png" alt="Logo AKT">
                         </div>
-                        <div v-else class="text-gray-500 text-4xl font-mono">ESPERANDO VOTOS
-                        </div>
-                    </div>
+                    </footer>
                 </div>
-                <div v-else class="flex flex-col h-full p-2">
-                    <div class="flex justify-between items-start mb-8">
-                        <div class="text-white text-2xl font-oswald uppercase leading-snug">
-                            <div class="text-yellow-400 font-bold text-3xl">{{ globalState.category }}</div>
-                            <div class="text-gray-400 text-lg">{{ globalState.eventName }}</div>
-                        </div>
-                        <div class="flex flex-col items-center">
-                            <div class="bg-green-600 text-white font-bold text-2xl px-8 py-2 text-center">
-                                <div class="text-sm uppercase leading-none mb-1">TATAMI</div>
-                                <div class="text-4xl leading-none">{{ globalState.tatami }}</div>
+                <div v-else class="kumite-tv-screen flex flex-col h-full">
+                    <header class="kumite-tv-athlete-header">
+                        <section class="kumite-tv-athlete-heading kumite-tv-aka-heading">
+                            <span class="kumite-tv-side-chip kumite-tv-aka-chip" aria-label="Identificador AKA"></span>
+                            <span class="kumite-tv-municipality-name">AKA {{ kumiteState.akaCode || kumiteState.akaMunicipio?.code || kumiteState.akaMunicipio?.name || '---' }}</span>
+                        </section>
+                        <section class="kumite-tv-athlete-heading kumite-tv-ao-heading">
+                            <span class="kumite-tv-side-chip kumite-tv-ao-chip" aria-label="Identificador AO"></span>
+                            <span class="kumite-tv-municipality-name">AO {{ kumiteState.aoCode || kumiteState.aoMunicipio?.code || kumiteState.aoMunicipio?.name || '---' }}</span>
+                        </section>
+                    </header>
+
+                    <main class="kumite-tv-score-area">
+                        <section class="kumite-tv-athlete kumite-tv-athlete-aka" :class="{ 'kumite-tv-winner': kumiteState.winner === 'aka' }">
+                            <div class="kumite-tv-athlete-name">
+                                <span class="kumite-tv-last-name">{{ splitKumiteTVName(kumiteState.akaName).lastName || 'ESPERANDO AKA' }}</span>
+                                <span v-if="splitKumiteTVName(kumiteState.akaName).firstName" class="kumite-tv-first-name">{{ splitKumiteTVName(kumiteState.akaName).firstName }}</span>
+                            </div>
+                            <div v-if="kumiteState.winner === 'aka'" class="kumite-tv-winner-label">GANADOR</div>
+                        </section>
+
+                        <div class="kumite-tv-score-card kumite-tv-score-aka" aria-label="Puntaje AKA">
+                            <span>{{ kumiteState.akaScore }}</span>
+                            <div v-if="kumiteState.senshu === 'aka'" class="senshu-triangle" aria-label="Senshu AKA">
+                                <span class="senshu-text">S</span>
                             </div>
                         </div>
-                        <div class="text-white text-4xl font-bold font-oswald">AKT</div>
-                    </div>
-                    <div class="flex flex-col gap-6 w-full max-w-7xl mx-auto">
-                        <div class="flex h-48 transition"
-                            :class="{'animate-pulse shadow-[0_0_50px_rgba(211,47,47,0.8)]': kumiteState.winner === 'aka'}">
-                            <div class="w-48 bg-white text-black flex items-center justify-center rounded-l-xl mr-1">
-                                <span class="text-6xl font-oswald font-bold uppercase">{{ kumiteState.akaCode }}</span>
-                            </div>
-                            <div class="flex-1 flex flex-col bg-black mr-1">
-                                <div
-                                    class="bg-[#D32F2F] flex-1 min-h-0 w-full flex items-center justify-between px-8 rounded-r-xl">
-                                    <span class="text-white text-6xl font-oswald font-bold uppercase truncate">{{
-                                        kumiteState.akaName }}</span>
-                                    <span v-if="kumiteState.winner === 'aka'"
-                                        class="text-green-300 font-black animate-bounce tracking-widest text-4xl ml-4">GANADOR</span>
-                                </div>
-                                <div class="flex items-center gap-4 px-2 pt-6"><span
-                                        class="text-white text-sm font-bold uppercase">PENALTY</span>
-                                    <div class="flex gap-2">
-                                        <div v-for="(p, i) in 5" :key="i"
-                                            class="tv-penalty-indicator"
-                                            :class="{ 'tv-penalty-indicator--active': kumiteState.akaPenalties.includes(['CHUI 1', 'CHUI 2', 'CHUI 3', 'HANSOKU CHUI', 'HANSOKU'][i]) }">
-                                            {{ ['C1','C2','C3','HC','H'][i] }}</div>
-                                        <div v-if="kumiteState.shikkaku === 'aka'" aria-label="Shikkaku AKA"
-                                            class="w-8 h-8 flex items-center justify-center text-xs font-bold rounded bg-red-700 text-white">S</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div
-                                class="w-48 bg-[#D32F2F] text-white flex items-center justify-center rounded-xl relative ml-2 overflow-hidden">
-                                <span class="text-8xl font-bold">{{ kumiteState.akaScore }}</span>
-                                <div v-if="kumiteState.senshu === 'aka'" class="senshu-triangle"><span
-                                        class="senshu-text">S</span></div>
+                        <div class="kumite-tv-score-card kumite-tv-score-ao" aria-label="Puntaje AO">
+                            <span>{{ kumiteState.aoScore }}</span>
+                            <div v-if="kumiteState.senshu === 'ao'" class="senshu-triangle" aria-label="Senshu AO">
+                                <span class="senshu-text">S</span>
                             </div>
                         </div>
-                        <div class="flex h-48 transition"
-                            :class="{'animate-pulse shadow-[0_0_50px_rgba(25,118,210,0.8)]': kumiteState.winner === 'ao'}">
-                            <div class="w-48 bg-white text-black flex items-center justify-center rounded-l-xl mr-1">
-                                <span class="text-6xl font-oswald font-bold uppercase">{{ kumiteState.aoCode }}</span>
+
+                        <section class="kumite-tv-athlete kumite-tv-athlete-ao" :class="{ 'kumite-tv-winner': kumiteState.winner === 'ao' }">
+                            <div class="kumite-tv-athlete-name">
+                                <span class="kumite-tv-last-name">{{ splitKumiteTVName(kumiteState.aoName).lastName || 'ESPERANDO AO' }}</span>
+                                <span v-if="splitKumiteTVName(kumiteState.aoName).firstName" class="kumite-tv-first-name">{{ splitKumiteTVName(kumiteState.aoName).firstName }}</span>
                             </div>
-                            <div class="flex-1 flex flex-col bg-black mr-1">
-                                <div
-                                    class="bg-[#1976D2] flex-1 min-h-0 w-full flex items-center justify-between px-8 rounded-r-xl">
-                                    <span class="text-white text-6xl font-oswald font-bold uppercase truncate">{{
-                                        kumiteState.aoName }}</span>
-                                    <span v-if="kumiteState.winner === 'ao'"
-                                        class="text-green-300 font-black animate-bounce tracking-widest text-4xl ml-4">GANADOR</span>
-                                </div>
-                                <div class="flex items-center gap-4 px-2 pt-6"><span
-                                        class="text-white text-sm font-bold uppercase">PENALTY</span>
-                                    <div class="flex gap-2">
-                                        <div v-for="(p, i) in 5" :key="i"
-                                            class="tv-penalty-indicator"
-                                            :class="{ 'tv-penalty-indicator--active': kumiteState.aoPenalties.includes(['CHUI 1', 'CHUI 2', 'CHUI 3', 'HANSOKU CHUI', 'HANSOKU'][i]) }">
-                                            {{ ['C1','C2','C3','HC','H'][i] }}</div>
-                                        <div v-if="kumiteState.shikkaku === 'ao'" aria-label="Shikkaku AO"
-                                            class="w-8 h-8 flex items-center justify-center text-xs font-bold rounded bg-red-700 text-white">S</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div
-                                class="w-48 bg-[#1976D2] text-white flex items-center justify-center rounded-xl relative ml-2 overflow-hidden">
-                                <span class="text-8xl font-bold">{{ kumiteState.aoScore }}</span>
-                                <div v-if="kumiteState.senshu === 'ao'" class="senshu-triangle"><span
-                                        class="senshu-text">S</span></div>
-                            </div>
+                            <div v-if="kumiteState.winner === 'ao'" class="kumite-tv-winner-label">GANADOR</div>
+                        </section>
+                    </main>
+
+                    <div class="kumite-tv-penalties-bar" aria-label="Penalties">
+                        <div class="kumite-tv-penalty-group kumite-tv-penalty-group-aka" aria-label="Penalties AKA">
+                            <span v-for="(penalty, index) in ['CHUI 1', 'CHUI 2', 'CHUI 3', 'HANSOKU CHUI', 'HANSOKU']" :key="penalty"
+                                class="kumite-tv-penalty-box"
+                                :class="{ 'kumite-tv-penalty-active': kumiteState.akaPenalties.includes(penalty) }">{{ ['C1', 'C2', 'C3', 'HC', 'H'][index] }}</span>
+                            <span v-if="kumiteState.shikkaku === 'aka'" class="kumite-tv-shikkaku">S</span>
+                        </div>
+                        <span class="kumite-tv-penalties-label">PENALTIES</span>
+                        <div class="kumite-tv-penalty-group kumite-tv-penalty-group-ao" aria-label="Penalties AO">
+                            <span v-for="(penalty, index) in ['HANSOKU', 'HANSOKU CHUI', 'CHUI 3', 'CHUI 2', 'CHUI 1']" :key="penalty"
+                                class="kumite-tv-penalty-box"
+                                :class="{ 'kumite-tv-penalty-active': kumiteState.aoPenalties.includes(penalty) }">{{ ['H', 'HC', 'C3', 'C2', 'C1'][index] }}</span>
+                            <span v-if="kumiteState.shikkaku === 'ao'" class="kumite-tv-shikkaku">S</span>
                         </div>
                     </div>
-                    <div class="mt-auto mb-4 text-center">
-                        <div v-if="kumiteState.medicalActive" class="text-white text-3xl font-bold uppercase tracking-widest">TIEMPO MÉDICO</div>
-                        <div class="text-[10rem] leading-none font-bold font-mono tracking-tighter drop-shadow-md"
-                            :class="kumiteState.medicalActive ? 'text-white' : (kumiteState.timerRunning ? (kumiteState.timer < 16000 ? 'text-red-600' : 'text-[#FFEB3B]') : 'text-white')">
-                            {{ formatTime(kumiteState.medicalActive ? kumiteState.medicalTimer : kumiteState.timer) }}</div>
-                    </div>
+
+                    <footer class="kumite-tv-footer">
+                        <section class="kumite-tv-event-info">
+                            <div class="kumite-tv-event-meta">
+                            <div class="kumite-tv-meta-row"><span class="kumite-tv-meta-label">TATAMI</span><span class="kumite-tv-meta-value">{{ globalState.tatami || '1' }}</span></div>
+                                <div class="kumite-tv-meta-row kumite-tv-category-value">{{ globalState.kumiteCategory || globalState.category }} · {{ globalState.kumiteDivision || '' }}</div>
+                                <div class="kumite-tv-weight-value">{{ globalState.kumiteWeight || '—' }}</div>
+                            </div>
+                            <div class="kumite-tv-karate-logo" role="img" aria-label="Karate">
+                                <img v-if="kataState.tvTournamentLogo" :src="kataState.tvTournamentLogo"
+                                    :alt="'Logo ' + (globalState.eventName || 'del torneo')"
+                                    class="h-full w-full object-contain">
+                                <img v-else src="./28-logo.png" alt="Logo AKT" class="h-full w-full object-contain">
+                            </div>
+                        </section>
+
+                        <section class="kumite-tv-clock" aria-label="Cronómetro">
+                            <div v-if="kumiteState.medicalActive" class="kumite-tv-medical-label">TIEMPO MÉDICO</div>
+                            <div class="kumite-tv-clock-value" :class="{
+                                'kumite-tv-clock-running': kumiteState.timerRunning && !kumiteState.medicalActive && kumiteState.timer > 15999,
+                                'kumite-tv-clock-warning': kumiteState.timerRunning && !kumiteState.medicalActive && kumiteState.timer > 0 && kumiteState.timer <= 15999
+                            }">
+                                <span>{{ splitKumiteTVTimer(kumiteState.medicalActive ? kumiteState.medicalTimer : kumiteState.timer).main }}</span><small>{{ splitKumiteTVTimer(kumiteState.medicalActive ? kumiteState.medicalTimer : kumiteState.timer).fraction }}</small>
+                            </div>
+                        </section>
+
+                        <section class="kumite-tv-match-meta">
+                            <div class="kumite-tv-round-value">{{ globalState.kumiteRound || 'COMBATE' }}</div>
+                            <span class="kumite-tv-meta-label">MATCH NUMBER</span>
+                            <div class="kumite-tv-match-number">{{ globalState.kumiteMatchNumber || '—' }}</div>
+                        </section>
+                    </footer>
                 </div>
             </div>
 
@@ -1524,6 +1572,10 @@
 
         const municipios = [{ name: "Tampico", code: "TAM" }, { name: "Reynosa", code: "REY" }, { name: "Victoria", code: "VIC" }, { name: "Matamoros", code: "MAT" }, { name: "Madero", code: "MAD" }, { name: "Altamira", code: "ALT" }, { name: "Nuevo Laredo", code: "NLD" }];
         const officialKatas = ["1 - Anan", "2 - Anan Dai", "3 - Ananko", "4 - Aoyagi", "5 - Bassai", "6 - Bassai Dai", "7 - Bassai Sho", "8 - Chatanyara Kusanku", "9 - Chibana No Kushanku", "10 - Chinte", "11 - Chinto", "12 - Enpi", "13 - Fukyugata Ichi", "14 - Fukyugata Ni", "15 - Gankaku", "16 - Garyu", "17 - Gekisai 1", "18 - Gekisai 2", "19 - Gojushiho", "20 - Gojushiho Dai", "21 - Gojushiho Sho", "22 - Hakusho", "23 - Hangetsu", "24 - Haufa", "25 - Heian Shodan", "26 - Heian Nidan", "27 - Heian Sandan", "28 - Heian Yondan", "29 - Heian Godan", "30 - Heiku", "31 - Ishimine Bassai", "32 - Itosu Rohai Shodan", "33 - Itosu Rohai Nidan", "34 - Itosu Rohai Sandan", "35 - Jiin", "36 - Jion", "37 - Jitte", "38 - Juroku", "39 - Kanchin", "40 - Kanku Dai", "41 - Kanku Sho", "42 - Kanshu", "43 - Kishimono No Kushanku", "44 - Kousoukun", "45 - Kousoukun Dai", "46 - Kousoukun Sho", "47 - Kururunfa", "48 - Kusanku", "49 - Kyan No Chinto", "50 - Kyan No Wanshu", "51 - Matsukaze", "52 - Matsumura Bassai", "53 - Matsumura Rohai", "54 - Meikyo", "55 - Myojo", "56 - Naifanchin Shodan", "57 - Naifanchin Nidan", "58 - Naifanchin Sandan", "59 - Naihanchi", "60 - Nijushiho", "61 - Nipaipo", "62 - Niseishi", "63 - Ohan", "64 - Ohan Dai", "65 - Oyadomari No Passai", "66 - Pachu", "67 - Paiku", "68 - Papuren", "69 - Passai", "70 - Pinan Shodan", "71 - Pinan Nidan", "72 - Pinan Sandan", "73 - Pinan Yondan", "74 - Pinan Godan", "75 - Rohai", "76 - Saifa", "77 - Sanchin", "78 - Sansai", "79 - Sanseiru", "80 - Sanseru", "81 - Seichin", "82 - Seienchin", "83 - Seipai", "84 - Seiryu", "85 - Seishan", "86 - Seisan", "87 - Shiho Kousoukun", "88 - Shinpa", "89 - Shinsei", "90 - Shisochin", "91 - Sochin", "92 - Suparinpei", "93 - Tekki Shodan", "94 - Tekki Nidan", "95 - Tekki Sandan", "96 - Tensho", "97 - Tomari Bassai", "98 - Unshu", "99 - Unsu", "100 - Useishi", "101 - Wankan", "102 - Wanshu"];
+        const kataCatalog = officialKatas.map((legacy, index) => {
+            const separator = legacy.indexOf(' - ');
+            return { number: index + 1, id: String(index + 1).padStart(3, '0'), name: legacy.slice(separator + 3).trim(), legacy };
+        });
 
         const timeRules = [
             { label: 'Senior Varonil (3:00)', seconds: 180 }, { label: 'Senior Femenil (3:00)', seconds: 180 },
@@ -1654,7 +1706,8 @@
                 const isSendingEmail = ref(false);
 
                 const eventForm = reactive({ name: '', startDate: '', endDate: '', location: '', description: '' });
-                const isEventModalOpen = ref(false);
+                 const isEventModalOpen = ref(false);
+                 const eventLogoInput = ref(null);
                 const regForm = reactive({ name: '', municipio: 'Tampico', dojo: '', email: '', gender: 'M', age: null, modality: 'KUMITE', type: 'INDIVIDUAL', weight: null, teamMembers: [], weightType: 'ESTATAL' });
                 const pendingCompetitors = ref([]);
                 const isDojoLocked = ref(false);
@@ -1712,16 +1765,41 @@
                     akaCounts: { yuko: 0, wazaari: 0, ippon: 0 },
                     aoCounts: { yuko: 0, wazaari: 0, ippon: 0 }
                 });
-                const kataState = reactive({
-                    categoryName: 'SENIOR MALE', modalityName: 'INDIVIDUAL', selectedCategoryRule: kataCategoryOptions[4],
-                    competitorName: 'Competidor 1', countryName: 'TAMPICO', countryCode: 'TAM', municipioObj: municipios[0],
-                    kataName: '1 - Anan', akaScores: Array(7).fill(null), aoScores: Array(7).fill(null), total: "0.00", scoreVisible: false,
-                    timerRunning: false, timerMode: null, timer: 35000, showTimer: false, matchStep: 1, p1TempScore: 0, p2TempScore: 0,
-                    showVotes: false, akaVotes: 0, aoVotes: 0, judgeVotes: [],
-                    tvVoteMode: 'free', tvVotesVisible: false, tvAkaVotes: 0, tvAoVotes: 0,
-                    tvAkaName: '', tvAoName: '', tvWinner: null
-                });
-                const globalState = reactive({ eventName: 'TORNEO LOCAL', category: 'SENIOR VARONIL', tatami: '1' });
+                 const kataState = reactive({
+                     categoryName: 'SENIOR MALE', modalityName: 'INDIVIDUAL', selectedCategoryRule: kataCategoryOptions[4],
+                     competitorName: 'Competidor 1', countryName: 'TAMPICO', countryCode: 'TAM', municipioObj: municipios[0],
+                     kataName: '1 - Anan', akaScores: Array(7).fill(null), aoScores: Array(7).fill(null), total: "0.00", scoreVisible: false,
+                     timerRunning: false, timerMode: null, timer: 35000, showTimer: false, matchStep: 1, p1TempScore: 0, p2TempScore: 0,
+                     showVotes: false, akaVotes: 0, aoVotes: 0, judgeVotes: [],
+                     tvVoteMode: 'free', tvVotesVisible: false, tvAkaVotes: 0, tvAoVotes: 0,
+                     tvAkaName: '', tvAoName: '', tvWinner: null, tvTournamentLogo: null,
+                     freeSide: 'aka', tvSide: 'aka'
+                 });
+                 const globalState = reactive({
+                     eventName: 'TORNEO LOCAL', category: 'SENIOR VARONIL', tatami: '1',
+                     kumiteCategory: 'SEN', kumiteDivision: 'VAR · IND', kumiteWeight: '',
+                     kumiteRound: '', kumiteMatchNumber: ''
+                 });
+
+                 const resolveKataEntry = value => {
+                     const text = String(value ?? '').trim();
+                     if (!text) return null;
+                     const numeric = text.match(/^(\d{1,3})(?:\s*-\s*|\s+)?(.*)$/);
+                     if (numeric) {
+                         const entry = kataCatalog[Number(numeric[1]) - 1];
+                         if (entry) return entry;
+                     }
+                     return kataCatalog.find(entry => entry.name.toLowerCase() === text.toLowerCase()) || null;
+                 };
+                 const formatKataSelection = value => {
+                     const entry = resolveKataEntry(value);
+                     return entry ? `${entry.id} ${entry.name}` : String(value ?? '');
+                 };
+                 const currentKataDisplay = computed(() => {
+                     const entry = resolveKataEntry(kataState.kataName);
+                     return entry ? { number: entry.id, name: entry.name } : { number: '', name: String(kataState.kataName || '') };
+                 });
+                 const kataDisplaySide = computed(() => kataState.tvSide === 'ao' ? 'ao' : 'aka');
 
                 // --- LIFECYCLE: LOAD DATA FROM FIRESTORE OR LOCAL ---
                 onMounted(async () => {
@@ -1742,12 +1820,18 @@
                             kataJudgeConfigLocked.value = !!saved.locked;
                             newKataTournamentPending.value = !!saved.newTournament;
                         }
+                        const localTournamentLogo = localStorage.getItem('karate_event_logo_local');
+                        if (localTournamentLogo) {
+                            currentEvent.value.logoDataUrl = localTournamentLogo;
+                            kataState.tvTournamentLogo = localTournamentLogo;
+                        }
                         checkDeepLink();
                     }
 
                     // Initial UI Setup
-                    kataSearchQuery.value = kataState.kataName;
+                    kataSearchQuery.value = formatKataSelection(kataState.kataName);
                     municipioSearchQuery.value = kataState.municipioObj ? kataState.municipioObj.name : '';
+                    updateKataCategoryDisplay();
 
                     checkDeepLink();
 
@@ -1827,7 +1911,10 @@
                     // PRE-REG MODE
                     else if (eventId) {
                         const foundEvent = events.value.find(e => e.id === eventId);
-                        currentEvent.value = foundEvent || { id: eventId, name: 'Evento Compartido', location: 'Cloud/Local' };
+                        const eventLogo = localStorage.getItem(`karate_event_logo_${eventId}`);
+                        currentEvent.value = { ...(foundEvent || { id: eventId, name: 'Evento Compartido', location: 'Cloud/Local' }), logoDataUrl: foundEvent?.logoDataUrl || eventLogo || null };
+                        kataState.tvTournamentLogo = currentEvent.value.logoDataUrl;
+                        globalState.eventName = currentEvent.value.name;
                         isSenseiMode.value = true;
                         view.value = 'PRE_REGISTRATION';
                     }
@@ -1905,7 +1992,87 @@
                     const newEvent = { name: eventForm.name, startDate: eventForm.startDate, endDate: eventForm.endDate, location: eventForm.location, description: eventForm.description, createdAt: new Date().toISOString() };
                     { events.value = events.value.filter(e => e.id !== id); localStorage.setItem('karate_events', JSON.stringify(events.value)); } if (currentEvent.value && currentEvent.value.id === id) { currentEvent.value = null; }
                 };
-                const selectEvent = (evt) => { currentEvent.value = evt; view.value = 'REGISTRATION'; globalState.eventName = evt.name; };
+                const eventLogoStorageKey = event => `karate_event_logo_${event?.id || 'local'}`;
+                const sanitizeTournamentSvg = source => {
+                    const parsed = new DOMParser().parseFromString(source, 'image/svg+xml');
+                    if (parsed.querySelector('parsererror') || parsed.documentElement?.tagName.toLowerCase() !== 'svg') {
+                        throw new Error('El archivo SVG no es válido.');
+                    }
+                    parsed.querySelectorAll('script,foreignObject,iframe,object,embed,audio,video').forEach(node => node.remove());
+                    parsed.querySelectorAll('*').forEach(node => {
+                        [...node.attributes].forEach(attribute => {
+                            const name = attribute.name.toLowerCase();
+                            const value = attribute.value.trim();
+                            if (name.startsWith('on') || /javascript\s*:/i.test(value)
+                                || ((name === 'href' || name.endsWith(':href')) && value && !value.startsWith('#'))
+                                || ((name === 'style' || /url\s*\(/i.test(value)) && /url\s*\((?!\s*['"]?#)/i.test(value))) {
+                                node.removeAttribute(attribute.name);
+                            }
+                        });
+                    });
+                    parsed.querySelectorAll('style').forEach(node => {
+                        if (/@import|url\s*\((?!\s*['"]?#)|expression\s*\(/i.test(node.textContent)) node.remove();
+                    });
+                    return new XMLSerializer().serializeToString(parsed.documentElement);
+                };
+                const saveTournamentLogo = dataUrl => {
+                    const event = currentEvent.value || { id: 'local', name: 'Torneo Local' };
+                    const key = eventLogoStorageKey(event);
+                    try {
+                        if (dataUrl) localStorage.setItem(key, dataUrl);
+                        else localStorage.removeItem(key);
+                        currentEvent.value = { ...event, logoDataUrl: dataUrl || null };
+                        kataState.tvTournamentLogo = dataUrl || null;
+                        const savedEventIndex = events.value.findIndex(item => item.id === event.id);
+                        if (savedEventIndex >= 0) {
+                            events.value[savedEventIndex] = { ...events.value[savedEventIndex], logoDataUrl: dataUrl || null };
+                            localStorage.setItem('karate_events', JSON.stringify(events.value));
+                        }
+                    } catch (error) {
+                        console.error('No se pudo guardar el logo del torneo:', error);
+                        alert('No se pudo guardar el logo. Reduce el tamaño del archivo e inténtalo de nuevo.');
+                    }
+                };
+                const handleEventLogoUpload = async event => {
+                    const file = event.target.files?.[0];
+                    if (!file) return;
+                    event.target.value = '';
+                    if (file.size > 350 * 1024) {
+                        alert('El logo debe pesar 350 KB o menos para guardarse localmente.');
+                        return;
+                    }
+                    const extension = file.name.split('.').pop()?.toLowerCase();
+                    if (!['png', 'jpg', 'jpeg', 'svg'].includes(extension)) {
+                        alert('Formato no compatible. Selecciona PNG, JPG o SVG.');
+                        return;
+                    }
+                    try {
+                        let dataUrl;
+                        if (extension === 'svg') {
+                            const sanitizedSvg = sanitizeTournamentSvg(await file.text());
+                            dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(sanitizedSvg)}`;
+                        } else {
+                            dataUrl = await new Promise((resolve, reject) => {
+                                const reader = new FileReader();
+                                reader.onload = () => resolve(reader.result);
+                                reader.onerror = () => reject(new Error('No se pudo leer el archivo.'));
+                                reader.readAsDataURL(file);
+                            });
+                        }
+                        saveTournamentLogo(dataUrl);
+                    } catch (error) {
+                        console.error('No se pudo procesar el logo:', error);
+                        alert(error.message || 'No se pudo procesar el logo.');
+                    }
+                };
+                const removeEventLogo = () => saveTournamentLogo(null);
+                const selectEvent = (evt) => {
+                    const savedLogo = localStorage.getItem(eventLogoStorageKey(evt));
+                    currentEvent.value = { ...evt, logoDataUrl: evt.logoDataUrl || savedLogo || null };
+                    kataState.tvTournamentLogo = currentEvent.value.logoDataUrl;
+                    view.value = 'REGISTRATION';
+                    globalState.eventName = evt.name;
+                };
                 const exitEvent = () => { currentEvent.value = null; view.value = 'EVENTS_LIST'; };
                 const registerCompetitorLocal = () => { const competitor = { ...regForm, categoryLabel: calculatedCategory.value, teamMembers: regForm.type === 'TEAM' ? [...regForm.teamMembers] : [], eventId: currentEvent.value ? currentEvent.value.id : 'default' }; { competitor.id = Date.now().toString(); competitors.value.push(competitor); localStorage.setItem('karate_competitors', JSON.stringify(competitors.value)); } regForm.name = ''; regForm.weight = null; regForm.age = null; regForm.teamMembers = []; alert("Competidor registrado con éxito."); };
                 const addToPending = () => { const competitor = { ...regForm, categoryLabel: calculatedCategory.value, teamMembers: regForm.type === 'TEAM' ? [...regForm.teamMembers] : [], eventId: currentEvent.value ? currentEvent.value.id : 'default' }; pendingCompetitors.value.push(competitor); if (!isDojoLocked.value) isDojoLocked.value = true; const currentDojo = regForm.dojo; const currentMuni = regForm.municipio; const currentEmail = regForm.email; const currentWeightType = regForm.weightType; regForm.name = ''; regForm.weight = null; regForm.age = null; regForm.teamMembers = []; regForm.dojo = currentDojo; regForm.municipio = currentMuni; regForm.email = currentEmail; regForm.weightType = currentWeightType; };
@@ -2206,16 +2373,17 @@
                         kataState.tvAkaName = m.p1.name;
                         kataState.tvAoName = m.p2.name;
                         kataState.categoryName = b.catName;
+                        kataState.modalityName = `KATA · ${m.p1.gender === 'F' ? 'FEMENIL' : 'VARONIL'} · ${m.p1.type === 'TEAM' ? 'EQUIPO' : 'INDIVIDUAL'}`;
                         kataState.competitorName = m.p1.name;
                         kataState.countryName = m.p1.municipio;
                         kataState.countryCode = p1M ? p1M.code : 'UNK';
+                        kataState.kataName = resolveKataEntry(m.kata1)?.legacy || kataState.kataName;
                         kataState.p1TempScore = m.score1 !== undefined ? m.score1 : 0;
                         kataState.p2TempScore = m.score2 !== undefined ? m.score2 : 0;
 
                         // Parse P1 Kata Number
                         if (m.kata1) {
-                            const found = officialKatas.find(k => k.startsWith(m.kata1 + ' -'));
-                            kataSearchQuery.value = found ? found : m.kata1;
+                            kataSearchQuery.value = formatKataSelection(m.kata1);
                         } else {
                             kataSearchQuery.value = '';
                         }
@@ -2223,17 +2391,18 @@
                         const recordedAka = m.kataScoring?.akaScores;
                         const resumeAo = m.kataScoring?.stage === 2 || (m.kataScoring?.stage === undefined && Array.isArray(recordedAka)
                             && recordedAka.length >= (b.kataJudgeCount || tournamentKataJudges.value));
+                        kataState.tvSide = resumeAo ? 'ao' : 'aka';
                         if (resumeAo) {
                             kataState.matchStep = 2;
                             const p2M = municipios.find(x => x.name === m.p2.municipio);
                             kataState.competitorName = m.p2.name;
                             kataState.countryName = m.p2.municipio;
                             kataState.countryCode = p2M ? p2M.code : 'UNK';
+                            kataState.kataName = resolveKataEntry(m.kata2)?.legacy || kataState.kataName;
 
                             // Parse P2 Kata Number
                             if (m.kata2) {
-                                const found = officialKatas.find(k => k.startsWith(m.kata2 + ' -'));
-                                kataSearchQuery.value = found ? found : m.kata2;
+                                kataSearchQuery.value = formatKataSelection(m.kata2);
                             } else {
                                 kataSearchQuery.value = '';
                             }
@@ -2276,6 +2445,7 @@
                         kumiteState.senshuTriggered = false;
                         kumiteState.shikkaku = null;
                         kumiteState.winner = null;
+                        Object.assign(globalState, getKumiteTVDetails(b, m));
                     }
                     view.value = 'OPERATOR';
                 };
@@ -2301,13 +2471,14 @@
                     kataState.countryName = match.p2.municipio;
                     kataState.countryCode = p2M ? p2M.code : 'UNK';
                     kataState.matchStep = 2;
+                    kataState.tvSide = 'ao';
+                    kataState.kataName = resolveKataEntry(match.kata2)?.legacy || kataState.kataName;
                     resetKata({ preserveAka: true });
                     municipioSearchQuery.value = kataState.countryName;
 
                     // Parse P2 Kata Number
                     if (match.kata2) {
-                        const found = officialKatas.find(k => k.startsWith(match.kata2 + ' -'));
-                        kataSearchQuery.value = found ? found : match.kata2;
+                        kataSearchQuery.value = formatKataSelection(match.kata2);
                     } else {
                         kataSearchQuery.value = '';
                     }
@@ -2354,6 +2525,27 @@
                 const timerBtnText = computed(() => kataState.timerMode === 'preparation' && kataState.timerRunning ? 'DETENER (35s)' : 'INICIAR (35s)');
                 const teamTimerBtnText = computed(() => kataState.timerMode !== 'team' ? 'INICIAR (5:00)' : (kataState.timerRunning ? 'DETENER (5:00)' : 'REANUDAR (5:00)'));
 
+                const getKumiteTVDetails = (bracket, match) => {
+                    const competitor = match?.p1 || {};
+                    const ageGroup = RULES.AGE_GROUPS.find(group => competitor.age >= group.min && competitor.age <= group.max);
+                    const sourceCategory = String(bracket?.catName || '');
+                    const categoryToken = sourceCategory.match(/\b(U12|U14|U21|Cadete|Junior|Senior)\b/i)?.[1] || ageGroup?.id || '';
+                    const categoryCodes = { CADETE: 'CAD', JUNIOR: 'JUN', SENIOR: 'SEN' };
+                    const category = categoryCodes[categoryToken.toUpperCase()] || categoryToken.toUpperCase();
+                    const gender = competitor.gender || sourceCategory.match(/\b(F|M)\b/i)?.[1]?.toUpperCase() || 'M';
+                    const division = `${gender === 'F' ? 'FEM' : 'VAR'} · ${competitor.type === 'TEAM' ? 'EQ' : 'IND'}`;
+                    const weightSource = String(competitor.categoryLabel || sourceCategory);
+                    const weightMatch = weightSource.match(/([+-])\s*(\d+(?:\.\d+)?)\s*kg/i);
+                    const weight = weightMatch ? `${weightMatch[1]}${weightMatch[2]} kg` : '';
+                    const roundIndex = bracket?.rounds?.findIndex(round => round.some(item => item.id === match?.id)) ?? -1;
+                    return {
+                        kumiteCategory: category || '—',
+                        kumiteDivision: division,
+                        kumiteWeight: weight,
+                        kumiteRound: roundIndex >= 0 ? `RONDA ${roundIndex + 1}` : '',
+                        kumiteMatchNumber: Number.isInteger(match?.index) ? String(match.index + 1) : ''
+                    };
+                };
                 const computeCategory = (data) => { const a = data.age; if (!a) return 'Ingrese la edad...'; const g = RULES.AGE_GROUPS.find(x => a >= x.min && a <= x.max); if (!g) return "Edad fuera de rango permitido"; let s = `${g.label} ${data.gender} - ${data.modality} (${data.type})`; if (data.modality === 'KUMITE' && data.type === 'INDIVIDUAL' && data.weight) { const weightList = data.weightType === 'NACIONAL' ? RULES.WEIGHTS_NACIONAL : RULES.WEIGHTS_ESTATAL; const wR = weightList[g.id]?.[data.gender]; if (wR) for (let w of wR) { if (data.weight <= (w === 999 ? 1000 : w)) { s += ` ${w === 999 ? '+' + wR[wR.length - 2] : '-' + w}kg`; break; } } } return s; };
                 const isValidRegistration = computed(() => regForm.name && regForm.age && calculatedCategory.value && !calculatedCategory.value.includes('fuera de rango'));
                 const calculatedCategory = computed(() => { return computeCategory(regForm); });
@@ -2363,7 +2555,12 @@
                 watch([competitorFilter, competitorSearchQuery], () => { currentPage.value = 1; });
                 const filteredBrackets = computed(() => { const result = {}; const sq = bracketSearchQuery.value.toLowerCase(); for (const [catName, bracket] of Object.entries(brackets.value)) { if (bracketFilter.value !== 'ALL' && bracket.modality !== bracketFilter.value) continue; if (sq.trim() !== '' && !catName.toLowerCase().includes(sq)) continue; result[catName] = bracket; } return result; });
                 const filteredDojos = computed(() => { if (!regForm.dojo) return dojosList; return dojosList.filter(d => d.toLowerCase().includes(regForm.dojo.toLowerCase())); });
-                const filteredKatas = computed(() => { if (!kataSearchQuery.value) return officialKatas; return officialKatas.filter(k => k.toLowerCase().includes(kataSearchQuery.value.toLowerCase())); });
+                const filteredKatas = computed(() => {
+                    const query = kataSearchQuery.value.trim().toLowerCase();
+                    if (!query) return kataCatalog;
+                    return kataCatalog.filter(entry => entry.id.includes(query) || entry.name.toLowerCase().includes(query)
+                        || entry.legacy.toLowerCase().includes(query));
+                });
                 const filteredMunicipios = computed(() => { if (!municipioSearchQuery.value) return municipios; return municipios.filter(m => m.name.toLowerCase().includes(municipioSearchQuery.value.toLowerCase())); });
                 const currentBracketRounds = computed(() => selectedBracketName.value ? brackets.value[selectedBracketName.value].rounds : []);
                 const currentBracketWinner = computed(() => selectedBracketName.value ? brackets.value[selectedBracketName.value].rounds.slice(-1)[0][0]?.winner : null);
@@ -2383,6 +2580,15 @@
                     const secs = (totalSec % 60).toString().padStart(2, '0');
                     const tenths = Math.floor(remMs / 100).toString();
                     return `${mins}:${secs}.${tenths}`;
+                };
+                const splitKumiteTVTimer = ms => {
+                    const [main, fraction = '0'] = formatTime(ms).split('.');
+                    return { main, fraction: `.${fraction}` };
+                };
+                const splitKumiteTVName = name => {
+                    const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+                    if (parts.length < 2) return { lastName: parts[0] || '', firstName: '' };
+                    return { lastName: parts.at(-1), firstName: parts.slice(0, -1).join(' ') };
                 };
                 const openScoreboardWindow = () => { const url = window.location.href.split('?')[0]; window.open(url + `?view=scoreboard&mode=${currentMode.value}`, 'ScoreboardWindow', 'width=1280,height=720,menubar=no,toolbar=no,location=no') };
                 const checkAutoWin = () => {
@@ -2486,7 +2692,19 @@
                 const removeSenshu = () => { if (!isRemoveSenshuEnabled.value) return; kumiteState.senshu = null; kumiteState.senshuTriggered = false; }
                 const applyHansoku = (loserSide) => { if (kumiteState.medicalActive || !confirm(`¿Confirmar HANSOKU para ${loserSide.toUpperCase()}?`)) return; stopTimer(); kumiteState.winner = loserSide === 'aka' ? 'ao' : 'aka'; if (loserSide === 'aka') { if (!kumiteState.akaPenalties.includes('HANSOKU')) kumiteState.akaPenalties.push('HANSOKU'); } else { if (!kumiteState.aoPenalties.includes('HANSOKU')) kumiteState.aoPenalties.push('HANSOKU'); } };
                 const resetMatch = () => { if (kumiteState.medicalActive) return; resetTimer(); kumiteState.akaScore = 0; kumiteState.aoScore = 0; kumiteState.akaPenalties = []; kumiteState.aoPenalties = []; kumiteState.senshu = null; kumiteState.senshuTriggered = false; kumiteState.winner = null; kumiteState.shikkaku = null; kumiteState.akaCounts = {yuko: 0, wazaari: 0, ippon: 0}; kumiteState.aoCounts = {yuko: 0, wazaari: 0, ippon: 0}; if (localShikkakuUndo.value) localShikkakuUndo.value = null; };
-                const applyTimeRule = () => { if (kumiteState.medicalActive) return; resetTimer(); const cleanLabel = selectedTimeRule.value.label.split('(')[0].trim(); globalState.category = cleanLabel.toUpperCase(); }
+                const applyTimeRule = () => {
+                    if (kumiteState.medicalActive) return;
+                    resetTimer();
+                    const cleanLabel = selectedTimeRule.value.label.split('(')[0].trim();
+                    globalState.category = cleanLabel.toUpperCase();
+                    const categoryToken = cleanLabel.match(/U12|U14|Sub-21|Senior|Junior|Cadete/i)?.[0] || '';
+                    const categoryCodes = { SENIOR: 'SEN', JUNIOR: 'JUN', CADETE: 'CAD', 'SUB-21': 'U21' };
+                    globalState.kumiteCategory = categoryCodes[categoryToken.toUpperCase()] || categoryToken.toUpperCase();
+                    globalState.kumiteDivision = `${/Femenil/i.test(cleanLabel) ? 'FEM' : 'VAR'} · IND`;
+                    globalState.kumiteWeight = '';
+                    globalState.kumiteRound = '';
+                    globalState.kumiteMatchNumber = '';
+                }
                 const changeOperatorMode = (mode) => {
                     if (kumiteState.medicalActive && mode !== 'KUMITE') { alert('Termine el tiempo médico antes de cambiar de modalidad.'); return; }
                     if (mode === 'KATA' && !activeMatchId.value && kataState.tvVoteMode === 'tournament') {
@@ -2494,6 +2712,7 @@
                         kataState.tvVoteMode = 'free';
                         kataState.tvAkaName = '';
                         kataState.tvAoName = '';
+                        kataState.tvSide = kataState.freeSide;
                     }
                     view.value = 'OPERATOR'; currentMode.value = mode;
                 };
@@ -2637,17 +2856,24 @@
                      updateKataVotes();
                      kataState.showVotes = true;
                  };
-                 const resetKata = ({ preserveAka = !!activeMatchId.value && kataState.matchStep === 2 } = {}) => {
-                    if (!preserveAka) kataState.akaScores = Array(7).fill(null);
-                    kataState.aoScores = Array(7).fill(null);
-                    kataState.total = '0.00'; kataState.scoreVisible = false;
-                    stopKataTimer(); kataState.timerMode = null; kataState.showTimer = false; kataState.timer = 35000;
-                     kataState.showVotes = false; kataState.akaVotes = 0; kataState.aoVotes = 0; kataState.judgeVotes = [];
-                     kataState.tvVotesVisible = false; kataState.tvAkaVotes = 0; kataState.tvAoVotes = 0; kataState.tvWinner = null;
-                     kataTieModalSignature = '';
-                     isKataTieModalOpen.value = false;
-                 };
-                const selectKata = (k) => { kataState.kataName = k; kataSearchQuery.value = k; isKataDropdownOpen.value = false; };
+                  const resetKata = ({ preserveAka = !!activeMatchId.value && kataState.matchStep === 2 } = {}) => {
+                     if (!preserveAka) kataState.akaScores = Array(7).fill(null);
+                     kataState.aoScores = Array(7).fill(null);
+                     kataState.total = '0.00'; kataState.scoreVisible = false;
+                     stopKataTimer(); kataState.timerMode = null; kataState.showTimer = false; kataState.timer = 35000;
+                      kataState.showVotes = false; kataState.akaVotes = 0; kataState.aoVotes = 0; kataState.judgeVotes = [];
+                      kataState.tvVotesVisible = false; kataState.tvAkaVotes = 0; kataState.tvAoVotes = 0; kataState.tvWinner = null;
+                      kataState.tvSide = activeMatchId.value ? (kataState.matchStep === 2 ? 'ao' : 'aka') : kataState.freeSide;
+                      kataTieModalSignature = '';
+                      isKataTieModalOpen.value = false;
+                  };
+                const selectKata = (entry) => {
+                    const kata = typeof entry === 'string' ? resolveKataEntry(entry) : entry;
+                    if (!kata) return;
+                    kataState.kataName = kata.legacy;
+                    kataSearchQuery.value = `${kata.id} ${kata.name}`;
+                    isKataDropdownOpen.value = false;
+                };
                 const selectKataMunicipio = (m) => { kataState.municipioObj = m; kataState.countryName = m.name.toUpperCase(); kataState.countryCode = m.code; municipioSearchQuery.value = m.name; isMunicipioDropdownOpen.value = false; };
                 const closeKataDropdown = () => { setTimeout(() => { isKataDropdownOpen.value = false; }, 200); };
                 const closeMunicipioDropdown = () => { setTimeout(() => { isMunicipioDropdownOpen.value = false; }, 200); };
@@ -2669,23 +2895,25 @@
                 return {
                     view, isMobileMenuOpen, currentMode, isPopupMode, isLoading, isSenseiMode,
                     events, sortedEvents, currentEvent, openEventModal, closeEventModal, getEventDateDisplay, copyPreRegLink,
-                    municipios, officialKatas, kataCategoryOptions, timeRules, selectedTimeRule,
+                    municipios, officialKatas, kataCatalog, kataCategoryOptions, timeRules, selectedTimeRule,
                     regForm, calculatedCategory, isValidRegistration, competitors, deleteCompetitor, clearAllData, registerCompetitorLocal,
                     pendingCompetitors, addToPending, confirmBatchRegistrationLocal, removePending, isDojoLocked, showSuccessModal, finishSession, successCount,
                     isEditModalOpen, openEditModal, closeEditModal, saveEdit, editingCompetitor, editField, editValue,
                     brackets, generateBrackets, selectBracket, selectedBracketName, currentBracketRounds, currentBracketWinner, openMatchOperator, activeMatchId,
                     kumiteState, globalState, kataState,
                     startTimer, stopTimer, pauseCombat, resetTimer, startMedical, endMedical, resetMedical,
-                    resetMatch, addPoints, removePoints, togglePenalty, formatTime, finishKumiteMatch,
+                     resetMatch, addPoints, removePoints, togglePenalty, formatTime, splitKumiteTVTimer, splitKumiteTVName, finishKumiteMatch,
                     calculateKata, showKataScore, resetKata, toggleKataTimer, toggleTeamKataTimer, nextKataCompetitor, finishKataMatch,
                     setSenshu, removeSenshu, applyHansoku, isRemoveSenshuEnabled, applyTimeRule, adjustTimer, startColorChange,
                     shikkakuSide, shikkakuSelectedIds, shikkakuRequiredId, shikkakuAthleteName, shikkakuCandidates,
                     openShikkakuModal, cancelShikkaku, confirmShikkaku, undoShikkaku, lastShikkaku, canUndoShikkaku, isDisqualified,
                     changeOperatorMode, openScoreboardWindow,
                     kataSearchQuery, municipioSearchQuery, isKataDropdownOpen, isMunicipioDropdownOpen, filteredKatas, filteredMunicipios, selectKata, selectKataMunicipio, closeKataDropdown, closeMunicipioDropdown,
+                    currentKataDisplay, kataDisplaySide,
                     isDojoDropdownOpen, filteredDojos, selectDojo, closeDojoDropdown,
                     downloadBackup, selectBackupFolder, isAutoBackupActive, triggerImport, handleFileUpload, competitorFilter, competitorSearchQuery, filteredCompetitors, paginatedCompetitors, currentPage, totalPages, itemsPerPage, bracketFilter, bracketSearchQuery, filteredBrackets, getPairs,
-                     isEventModalOpen, eventForm, isSendingEmail, kataJudgeCount, calculateVotes,
+                      isEventModalOpen, eventForm, isSendingEmail, kataJudgeCount, calculateVotes,
+                      eventLogoInput, handleEventLogoUpload, removeEventLogo,
                      tournamentKataJudges, kataJudgeConfigLocked, setTournamentKataJudges, beginNewKataTournament,
                      setFreeKataJudges, canChangeFreeKataJudges, activeKataMatch, activeKataScoresComplete, kataVotesReady, kataTieNotice, kataJudgeVote, kataTieJudgeNumbers,
                      isKataTieModalOpen, dismissKataTieModal,
