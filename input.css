@@ -804,6 +804,18 @@ select.kata-input-box {
     gap: clamp(0.5rem, 1.6vw, 1.5rem);
 }
 .kumite-tv-event-meta { flex: 1; gap: clamp(0.25rem, 0.6vh, 0.65rem); }
+.kumite-tv-event-title {
+    max-width: 100%;
+    overflow: hidden;
+    color: #fff;
+    font-size: clamp(0.68rem, 1.15vw, 1.45rem);
+    font-weight: 900;
+    letter-spacing: 0.045em;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
 .kumite-tv-meta-row { display: block; }
 .kumite-tv-meta-label {
     display: block;
@@ -872,6 +884,7 @@ select.kata-input-box {
     .kumite-tv-karate-logo { width: clamp(3rem, 13vw, 4.5rem); }
     .kumite-tv-meta-label { font-size: clamp(0.5rem, 2vw, 0.75rem); }
     .kumite-tv-meta-value { font-size: clamp(0.62rem, 2.3vw, 0.9rem); }
+    .kumite-tv-event-title { font-size: clamp(0.55rem, 2vw, 0.78rem); }
     .kumite-tv-clock-value { font-size: clamp(2.8rem, 12vw, 5.5rem); }
     .kumite-tv-round-name { font-size: clamp(0.7rem, 2.7vw, 1.1rem); }
 }
