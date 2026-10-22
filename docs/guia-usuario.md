@@ -3,10 +3,11 @@
 ## 1. Primer inicio
 
 1. Abre la aplicación desde el menú Inicio.
-2. Registra competidores en **ADMIN**.
-3. Revisa modalidad, categoría, municipio y, para kumite individual, peso.
-4. En kata, selecciona **5 o 7 jueces** antes de generar las gráficas.
-5. Pulsa **GENERAR GRÁFICAS**.
+2. En **ADMIN**, escribe y guarda el **Nombre del torneo**; se almacena localmente y aparece en las vistas del operador y TV.
+3. Registra competidores en **ADMIN**.
+4. Revisa modalidad, categoría, municipio y, para kumite individual, peso.
+5. En kata, selecciona **5 o 7 jueces** antes de generar las gráficas.
+6. Pulsa **GENERAR GRÁFICAS**.
 
 ## 2. Operar kumite
 

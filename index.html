@@ -31,7 +31,7 @@
                     <div class="flex flex-col leading-none">
                         <span
                             class="font-black text-gray-800 text-xs md:text-md uppercase tracking-tighter truncate max-w-[200px] md:max-w-md">
-                            {{ currentEvent ? currentEvent.name : 'GESTOR DE EVENTOS' }}
+                            {{ currentEvent?.name || 'CONFIGURAR TORNEO' }}
                         </span>
                         <span v-if="currentEvent" class="text-[9px] text-gray-400 font-bold uppercase">{{
                             currentEvent.location }}</span>
@@ -443,6 +443,23 @@
                     <span v-else-if="kataJudgeConfigLocked" class="text-sm text-gray-600">Configuración fijada para este torneo.</span>
                     <button @click="beginNewKataTournament" class="ml-auto border border-indigo-700 text-indigo-800 rounded px-3 py-2 font-bold text-sm">Nuevo torneo: configurar jueces</button>
                 </div>
+                <div class="max-w-7xl mx-auto w-full mb-4 bg-white p-4 rounded-xl shadow border border-amber-200 flex flex-wrap items-end gap-4">
+                    <div class="min-w-0 flex-1">
+                        <label for="local-tournament-name" class="block text-sm font-black uppercase text-gray-700 mb-2">Nombre del torneo</label>
+                        <input id="local-tournament-name" v-model="tournamentNameDraft" type="text" maxlength="80"
+                            @keyup.enter="saveTournamentName" @input="tournamentNameSaved = false"
+                            class="w-full rounded-lg border border-gray-300 px-3 py-2 font-bold text-gray-900 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
+                            placeholder="Ej. Campeonato Estatal de Karate 2026">
+                        <p class="mt-1 text-xs text-gray-500">
+                            <span v-if="tournamentNameSaved" class="font-bold text-green-700">Nombre guardado en este equipo.</span>
+                            <span v-else>Se guarda en este equipo y aparece en las pantallas del torneo.</span>
+                        </p>
+                    </div>
+                    <button @click="saveTournamentName" type="button"
+                        class="rounded-lg bg-amber-600 px-5 py-2.5 font-black text-white hover:bg-amber-700">
+                        <i class="fas fa-save mr-2"></i>GUARDAR NOMBRE
+                    </button>
+                </div>
                 <div class="max-w-7xl mx-auto w-full mb-4 bg-white p-4 rounded-xl shadow border border-blue-200 flex flex-wrap items-center gap-4">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
                         <img v-if="currentEvent?.logoDataUrl" :src="currentEvent.logoDataUrl" alt="Logo del torneo"
@@ -452,7 +469,7 @@
                         </div>
                         <div class="min-w-0">
                             <div class="font-black text-gray-800">Logo de Kata TV</div>
-                            <div class="truncate text-sm text-gray-500">{{ currentEvent?.name || 'Torneo Local' }} · PNG, JPG o SVG</div>
+                            <div class="truncate text-sm text-gray-500">{{ currentEvent?.name || 'Configura el nombre del torneo' }} · PNG, JPG o SVG</div>
                         </div>
                     </div>
                     <input ref="eventLogoInput" type="file" accept="image/png,image/jpeg,image/svg+xml,.png,.jpg,.jpeg,.svg"
@@ -839,7 +856,7 @@
                     <div class="kata-operator-main bg-white p-6 rounded-2xl shadow-xl flex-1 border border-gray-200">
                         <div class="kata-operator-header mb-6 border-b pb-4 border-gray-100 flex items-center justify-between">
                             <div>
-                                <div class="kata-operator-eyebrow"><i class="fas fa-flag-checkered"></i> {{ globalState.eventName || 'TORNEO LOCAL' }} <span>·</span> TATAMI {{ globalState.tatami || '1' }}</div>
+                                <div class="kata-operator-eyebrow"><i class="fas fa-flag-checkered"></i> {{ globalState.eventName || 'CONFIGURAR TORNEO' }} <span>·</span> TATAMI {{ globalState.tatami || '1' }}</div>
                                 <h1 class="kata-operator-title">Operador de Kata</h1>
                             </div>
                             <div class="kata-category-control flex items-center justify-center gap-3">
@@ -1018,7 +1035,11 @@
 
                 <div v-else class="bg-white p-2 h-full overflow-auto rounded-lg shadow-lg">
                     <div
-                        class="bg-gray-200 rounded-t-lg p-2 flex justify-between items-center border border-gray-300 mb-4">
+                        class="bg-gray-200 rounded-t-lg p-2 flex flex-wrap justify-between items-center gap-2 border border-gray-300 mb-4">
+                            <div class="kumite-operator-event-name">
+                                <span class="block text-[9px] font-black uppercase tracking-wider text-gray-500">Torneo</span>
+                                <span class="block max-w-[18rem] truncate text-sm font-black uppercase text-gray-800">{{ globalState.eventName || 'CONFIGURAR TORNEO' }}</span>
+                            </div>
                             <div class="flex items-center gap-2"><span
                                     class="bg-black text-white text-xs px-2 py-1 rounded font-bold uppercase">Categoría</span><select
                                     v-model="selectedTimeRule" @change="applyTimeRule" :disabled="kumiteState.medicalActive"
@@ -1309,6 +1330,7 @@
                     <div class="text-xs text-gray-400 font-bold uppercase tracking-widest">Juez {{ judgeId }}</div>
                     <h1 class="text-2xl font-black text-white font-oswald uppercase">{{ judgeViewData.category ||
                         'ESPERANDO...' }}</h1>
+                    <div class="text-sm text-gray-300 font-bold uppercase">{{ globalState.eventName || 'CONFIGURAR TORNEO' }}</div>
                     <div class="text-sm text-yellow-400 font-bold">{{ judgeViewData.round || 'Torneo en Pausa' }}</div>
                 </div>
 
@@ -1353,7 +1375,7 @@
                             <span class="kata-tv-tatami-number">{{ globalState.tatami || '1' }}</span>
                         </div>
                         <div class="kata-tv-event-name">
-                            {{ globalState.eventName || 'TORNEO LOCAL' }}
+                            {{ globalState.eventName || 'CONFIGURAR TORNEO' }}
                         </div>
                     </header>
 
@@ -1479,6 +1501,7 @@
                     <footer class="kumite-tv-footer">
                         <section class="kumite-tv-event-info">
                             <div class="kumite-tv-event-meta">
+                                <div class="kumite-tv-event-title">{{ globalState.eventName || 'CONFIGURAR TORNEO' }}</div>
                             <div class="kumite-tv-meta-row"><span class="kumite-tv-meta-label">TATAMI</span><span class="kumite-tv-meta-value">{{ globalState.tatami || '1' }}</span></div>
                                 <div class="kumite-tv-meta-row kumite-tv-category-value">{{ globalState.kumiteCategory || globalState.category }} · {{ globalState.kumiteDivision || '' }}</div>
                                 <div class="kumite-tv-weight-value">{{ globalState.kumiteWeight || '—' }}</div>
@@ -1673,7 +1696,10 @@
                 const view = ref('REGISTRATION');
                 const isMobileMenuOpen = ref(false);
                 const isLoading = ref(false);
-                const currentEvent = ref({ id: 'local', name: 'Torneo Local', location: 'Local' });
+                const localTournamentNameKey = 'karate_local_tournament_name';
+                const currentEvent = ref({ id: 'local', name: '', location: 'Local' });
+                const tournamentNameDraft = ref('');
+                const tournamentNameSaved = ref(false);
 
                 // REAL-TIME DATA REFS
                 const competitors = ref([]);
@@ -1776,7 +1802,7 @@
                      freeSide: 'aka', tvSide: 'aka'
                  });
                  const globalState = reactive({
-                     eventName: 'TORNEO LOCAL', category: 'SENIOR VARONIL', tatami: '1',
+                     eventName: '', category: 'SENIOR VARONIL', tatami: '1',
                      kumiteCategory: 'SEN', kumiteDivision: 'VAR · IND', kumiteWeight: '',
                      kumiteRound: '', kumiteMatchNumber: ''
                  });
@@ -1813,6 +1839,13 @@
                         const sc = localStorage.getItem('karate_competitors'); if (sc) competitors.value = JSON.parse(sc);
                         const sb = localStorage.getItem('karate_brackets'); if (sb) brackets.value = JSON.parse(sb);
                         const ss = localStorage.getItem('karate_shikkaku'); if (ss) shikkakuRecords.value = JSON.parse(ss);
+                        const savedTournamentName = localStorage.getItem(localTournamentNameKey)?.trim();
+                        if (savedTournamentName) {
+                            currentEvent.value = { ...currentEvent.value, name: savedTournamentName };
+                            tournamentNameDraft.value = savedTournamentName;
+                            tournamentNameSaved.value = true;
+                            globalState.eventName = savedTournamentName;
+                        }
                         const judgeConfig = localStorage.getItem('karate_kata_judge_config');
                         if (judgeConfig) {
                             const saved = JSON.parse(judgeConfig);
@@ -1914,6 +1947,8 @@
                         const eventLogo = localStorage.getItem(`karate_event_logo_${eventId}`);
                         currentEvent.value = { ...(foundEvent || { id: eventId, name: 'Evento Compartido', location: 'Cloud/Local' }), logoDataUrl: foundEvent?.logoDataUrl || eventLogo || null };
                         kataState.tvTournamentLogo = currentEvent.value.logoDataUrl;
+                        tournamentNameDraft.value = currentEvent.value.name || '';
+                        tournamentNameSaved.value = false;
                         globalState.eventName = currentEvent.value.name;
                         isSenseiMode.value = true;
                         view.value = 'PRE_REGISTRATION';
@@ -1992,6 +2027,26 @@
                     const newEvent = { name: eventForm.name, startDate: eventForm.startDate, endDate: eventForm.endDate, location: eventForm.location, description: eventForm.description, createdAt: new Date().toISOString() };
                     { events.value = events.value.filter(e => e.id !== id); localStorage.setItem('karate_events', JSON.stringify(events.value)); } if (currentEvent.value && currentEvent.value.id === id) { currentEvent.value = null; }
                 };
+                const saveTournamentName = () => {
+                    const name = String(tournamentNameDraft.value || '').trim().replace(/\s+/g, ' ');
+                    if (!name) {
+                        alert('Escribe el nombre del torneo antes de guardarlo.');
+                        return false;
+                    }
+                    try {
+                        localStorage.setItem(localTournamentNameKey, name);
+                    } catch (error) {
+                        console.error('No se pudo guardar el nombre del torneo:', error);
+                        alert('No se pudo guardar el nombre del torneo en este equipo.');
+                        return false;
+                    }
+                    const event = currentEvent.value || { id: 'local', location: 'Local' };
+                    currentEvent.value = { ...event, name };
+                    tournamentNameDraft.value = name;
+                    tournamentNameSaved.value = true;
+                    globalState.eventName = name;
+                    return true;
+                };
                 const eventLogoStorageKey = event => `karate_event_logo_${event?.id || 'local'}`;
                 const sanitizeTournamentSvg = source => {
                     const parsed = new DOMParser().parseFromString(source, 'image/svg+xml');
@@ -2016,7 +2071,7 @@
                     return new XMLSerializer().serializeToString(parsed.documentElement);
                 };
                 const saveTournamentLogo = dataUrl => {
-                    const event = currentEvent.value || { id: 'local', name: 'Torneo Local' };
+                    const event = currentEvent.value || { id: 'local', name: globalState.eventName || '' };
                     const key = eventLogoStorageKey(event);
                     try {
                         if (dataUrl) localStorage.setItem(key, dataUrl);
@@ -2070,6 +2125,8 @@
                     const savedLogo = localStorage.getItem(eventLogoStorageKey(evt));
                     currentEvent.value = { ...evt, logoDataUrl: evt.logoDataUrl || savedLogo || null };
                     kataState.tvTournamentLogo = currentEvent.value.logoDataUrl;
+                    tournamentNameDraft.value = evt.name || '';
+                    tournamentNameSaved.value = false;
                     view.value = 'REGISTRATION';
                     globalState.eventName = evt.name;
                 };
@@ -2894,7 +2951,7 @@
 
                 return {
                     view, isMobileMenuOpen, currentMode, isPopupMode, isLoading, isSenseiMode,
-                    events, sortedEvents, currentEvent, openEventModal, closeEventModal, getEventDateDisplay, copyPreRegLink,
+                    events, sortedEvents, currentEvent, tournamentNameDraft, tournamentNameSaved, saveTournamentName, openEventModal, closeEventModal, getEventDateDisplay, copyPreRegLink,
                     municipios, officialKatas, kataCatalog, kataCategoryOptions, timeRules, selectedTimeRule,
                     regForm, calculatedCategory, isValidRegistration, competitors, deleteCompetitor, clearAllData, registerCompetitorLocal,
                     pendingCompetitors, addToPending, confirmBatchRegistrationLocal, removePending, isDojoLocked, showSuccessModal, finishSession, successCount,
