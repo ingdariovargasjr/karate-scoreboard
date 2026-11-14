@@ -63,6 +63,11 @@
                         class="px-4 py-1 rounded text-xs font-bold transition flex items-center gap-2">
                         <i class="fas fa-users-cog"></i> ADMIN
                     </button>
+                    <button @click="view = 'EVENTS_LIST'"
+                        :class="{'bg-white shadow text-indigo-600': view === 'EVENTS_LIST', 'text-gray-500': view !== 'EVENTS_LIST'}"
+                        class="px-4 py-1 rounded text-xs font-bold transition flex items-center gap-2">
+                        <i class="fas fa-calendar-alt"></i> EVENTOS
+                    </button>
                     <button @click="view = 'BRACKETS'"
                         :class="{'bg-white shadow text-purple-600': view === 'BRACKETS' || view === 'BRACKET_DETAIL', 'text-gray-500': view !== 'BRACKETS' && view !== 'BRACKET_DETAIL'}"
                         class="px-4 py-1 rounded text-xs font-bold transition flex items-center gap-2">
@@ -108,6 +113,11 @@
                         :class="{'bg-blue-600 text-white shadow': view === 'REGISTRATION', 'bg-gray-100 text-gray-700': view !== 'REGISTRATION'}"
                         class="px-4 py-3 rounded text-sm font-bold transition flex items-center gap-2 w-full">
                         <i class="fas fa-users-cog"></i> ADMIN
+                    </button>
+                    <button @click="view = 'EVENTS_LIST'; isMobileMenuOpen = false"
+                        :class="{'bg-indigo-600 text-white shadow': view === 'EVENTS_LIST', 'bg-gray-100 text-gray-700': view !== 'EVENTS_LIST'}"
+                        class="px-4 py-3 rounded text-sm font-bold transition flex items-center gap-2 w-full">
+                        <i class="fas fa-calendar-alt"></i> EVENTOS
                     </button>
                     <button @click="view = 'BRACKETS'; isMobileMenuOpen = false"
                         :class="{'bg-purple-600 text-white shadow': view === 'BRACKETS' || view === 'BRACKET_DETAIL', 'bg-gray-100 text-gray-700': view !== 'BRACKETS' && view !== 'BRACKET_DETAIL'}"
@@ -251,11 +261,12 @@
                                         <select v-model="regForm.weightType" class="w-full border border-red-200 rounded p-2 text-sm font-bold text-red-700 bg-white outline-none focus:ring-2 focus:ring-red-200">
                                             <option value="ESTATAL">Pesos Categoría Estatal</option>
                                             <option value="NACIONAL">Pesos Categoría Campeonato Nacional</option>
+                                            <option value="OLIMPIADA_NACIONAL">Olimpiada Nacional</option>
                                         </select>
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-red-500 mb-1">Peso (kg)</label>
-                                        <input type="number" step="0.1" v-model.number="regForm.weight"
+                                        <input type="number" step="0.01" v-model.number="regForm.weight"
                                             class="w-full border border-red-200 rounded p-2 text-lg font-bold text-center"
                                             placeholder="0.0">
                                     </div>
@@ -397,6 +408,7 @@
                                     class="w-full border-2 border-blue-200 rounded-lg p-2 font-bold text-lg outline-none">
                                     <option value="ESTATAL">Pesos Categoría Estatal</option>
                                     <option value="NACIONAL">Pesos Categoría Campeonato Nacional</option>
+                                    <option value="OLIMPIADA_NACIONAL">Olimpiada Nacional</option>
                                 </select></div>
                             <div v-else-if="editField === 'municipio'"><select v-model="editValue"
                                     class="w-full border-2 border-blue-200 rounded-lg p-2 font-bold text-lg outline-none">
@@ -546,11 +558,12 @@
                                         <select v-model="regForm.weightType" class="w-full border border-red-200 rounded p-2 text-sm font-bold text-red-700 bg-white outline-none focus:ring-2 focus:ring-red-200">
                                             <option value="ESTATAL">Pesos Categoría Estatal</option>
                                             <option value="NACIONAL">Pesos Categoría Campeonato Nacional</option>
+                                            <option value="OLIMPIADA_NACIONAL">Olimpiada Nacional</option>
                                         </select>
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-red-500 mb-1">Peso (kg)</label>
-                                        <input type="number" step="0.1" v-model.number="regForm.weight"
+                                        <input type="number" step="0.01" v-model.number="regForm.weight"
                                             class="w-full border border-red-200 rounded p-2 text-lg font-bold text-center"
                                             placeholder="0.0">
                                     </div>
@@ -590,8 +603,7 @@
                                         @change="handleFileUpload"><button @click="triggerImport"
                                         class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 rounded shadow flex items-center justify-center gap-2"><i
                                             class="fas fa-file-import"></i> IMPORTAR RESPALDO</button></div>
-                                <p class="text-[10px] text-gray-400 text-center">Respaldo local (competidores y
-                                    gráficas).</p>
+                                <p class="text-[10px] text-gray-400 text-center">Incluye eventos, nombres, competidores, gráficas y su progreso para mover el respaldo a otro equipo.</p>
                             </div>
                         </div>
                     </div>
@@ -599,8 +611,8 @@
                         class="col-span-1 lg:col-span-8 bg-white rounded-xl shadow-md border border-gray-200 flex flex-col h-full overflow-hidden">
                         <div class="p-4 border-b border-gray-200 flex flex-col gap-3 bg-gray-50">
                             <div class="flex justify-between items-center">
-                                <h2 class="text-lg font-bold text-gray-700">Lista Total de Competidores ({{
-                                    competitors.length }})</h2>
+                                <h2 class="text-lg font-bold text-gray-700">Competidores de este evento ({{
+                                    eventCompetitors.length }})</h2>
                                 <div class="flex gap-2"><button @click="clearAllData"
                                         class="text-red-500 text-xs font-bold hover:underline">Borrar Todo
                                         (Local)</button><button @click="generateBrackets"
@@ -693,6 +705,86 @@
                 </div>
             </div>
 
+            <div v-if="view === 'EVENTS_LIST'" class="h-full overflow-y-auto bg-gray-50 p-6">
+                <div class="mx-auto max-w-6xl">
+                    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <h2 class="text-2xl font-black uppercase text-gray-800">Eventos locales</h2>
+                            <p class="mt-1 text-sm text-gray-500">Crea torneos en este equipo o abre uno guardado para continuar.</p>
+                        </div>
+                        <button @click="openEventModal"
+                            class="rounded-lg bg-indigo-600 px-5 py-3 font-black text-white shadow hover:bg-indigo-700">
+                            <i class="fas fa-plus mr-2"></i>CREAR EVENTO
+                        </button>
+                    </div>
+
+                    <div v-if="sortedEvents.length === 0" class="rounded-xl border-2 border-dashed border-gray-300 bg-white p-12 text-center text-gray-500">
+                        <i class="fas fa-calendar-plus mb-4 text-5xl text-gray-300"></i>
+                        <p class="font-bold">Aún no hay eventos guardados.</p>
+                        <p class="mt-1 text-sm">Crea uno aquí; no necesitas iniciar sesión ni conectarte a la nube.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <article v-for="event in sortedEvents" :key="event.id"
+                            class="flex flex-col justify-between rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                            <div>
+                                <div class="mb-3 flex items-start justify-between gap-2">
+                                    <h3 class="text-lg font-black uppercase text-gray-800">{{ event.name }}</h3>
+                                    <span v-if="currentEvent?.id === event.id" class="rounded bg-green-100 px-2 py-1 text-[10px] font-black uppercase text-green-800">ACTIVO</span>
+                                </div>
+                                <p class="text-sm font-bold text-gray-600">{{ event.location || 'Ubicación por definir' }}</p>
+                                <p class="mt-1 text-xs text-gray-500">{{ getEventDateDisplay(event) }}</p>
+                                <p v-if="event.description" class="mt-3 text-sm text-gray-500">{{ event.description }}</p>
+                                <p class="mt-3 text-xs font-bold text-gray-400">{{ eventCompetitorCount(event.id) }} competidores · {{ eventBracketCount(event.id) }} gráficas</p>
+                            </div>
+                            <button @click="selectEvent(event)"
+                                class="mt-5 w-full rounded-lg bg-gray-900 px-4 py-2.5 font-bold text-white hover:bg-gray-700">
+                                {{ currentEvent?.id === event.id ? 'ABRIR EVENTO ACTIVO' : 'ABRIR EVENTO' }}
+                            </button>
+                        </article>
+                    </div>
+
+                    <div v-if="currentEvent && !events.some(event => event.id === currentEvent.id)" class="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5">
+                        <h3 class="font-black text-amber-900">Torneo local actual</h3>
+                        <p class="mt-1 text-sm text-amber-800">{{ currentEvent.name || 'Sin nombre guardado' }} · {{ currentEvent.location || 'Local' }}</p>
+                        <button @click="view = 'REGISTRATION'" class="mt-3 rounded bg-amber-700 px-4 py-2 text-sm font-bold text-white">CONTINUAR</button>
+                    </div>
+                </div>
+
+                <div v-if="isEventModalOpen" class="fixed inset-0 z-[500] flex items-center justify-center bg-black bg-opacity-70 p-4">
+                    <form @submit.prevent="createEvent" class="w-full max-w-2xl rounded-2xl bg-white shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="create-event-title">
+                        <div class="flex items-center justify-between border-b border-gray-200 p-5">
+                            <div>
+                                <h3 id="create-event-title" class="text-xl font-black text-gray-900">Crear evento local</h3>
+                                <p class="mt-1 text-sm text-gray-500">El evento y sus datos se guardarán en este equipo.</p>
+                            </div>
+                            <button type="button" @click="closeEventModal" aria-label="Cerrar" class="rounded p-2 text-gray-500 hover:bg-gray-100"><i class="fas fa-times"></i></button>
+                        </div>
+                        <div class="grid grid-cols-1 gap-4 p-5 md:grid-cols-2">
+                            <label class="text-xs font-black uppercase text-gray-500 md:col-span-2">Nombre del evento
+                                <input v-model.trim="eventForm.name" required maxlength="100" class="mt-1 w-full rounded border border-gray-300 p-3 text-base font-bold text-gray-900" placeholder="Ej. Campeonato Estatal AKT 2027">
+                            </label>
+                            <label class="text-xs font-black uppercase text-gray-500">Fecha de inicio
+                                <input v-model="eventForm.startDate" type="date" class="mt-1 w-full rounded border border-gray-300 p-3 text-sm text-gray-900">
+                            </label>
+                            <label class="text-xs font-black uppercase text-gray-500">Fecha de cierre
+                                <input v-model="eventForm.endDate" type="date" class="mt-1 w-full rounded border border-gray-300 p-3 text-sm text-gray-900">
+                            </label>
+                            <label class="text-xs font-black uppercase text-gray-500 md:col-span-2">Ubicación
+                                <input v-model.trim="eventForm.location" maxlength="120" class="mt-1 w-full rounded border border-gray-300 p-3 text-sm text-gray-900" placeholder="Ciudad o sede">
+                            </label>
+                            <label class="text-xs font-black uppercase text-gray-500 md:col-span-2">Descripción
+                                <textarea v-model.trim="eventForm.description" rows="3" maxlength="500" class="mt-1 w-full rounded border border-gray-300 p-3 text-sm text-gray-900" placeholder="Notas del evento (opcional)"></textarea>
+                            </label>
+                        </div>
+                        <div class="flex justify-end gap-3 border-t border-gray-200 bg-gray-50 p-5">
+                            <button type="button" @click="closeEventModal" class="rounded-lg bg-gray-200 px-5 py-2.5 font-bold text-gray-700">CANCELAR</button>
+                            <button type="submit" class="rounded-lg bg-indigo-600 px-5 py-2.5 font-black text-white hover:bg-indigo-700">CREAR Y ABRIR</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <div v-if="view === 'BRACKETS'" class="h-full p-6 overflow-y-auto">
                 <h2 class="text-2xl font-black text-gray-800 mb-4 uppercase tracking-tight">Categorías Disponibles</h2>
 
@@ -701,7 +793,7 @@
                         <button @click="bracketFilter = 'ALL'"
                             :class="{'bg-white shadow text-gray-800': bracketFilter === 'ALL', 'text-gray-500 hover:text-gray-700': bracketFilter !== 'ALL'}"
                             class="px-4 py-1.5 rounded-md text-xs font-bold transition uppercase">Todas ({{
-                            Object.keys(brackets).length }})</button>
+                            eventBracketCount(activeEventId) }})</button>
                         <button @click="bracketFilter = 'KATA'"
                             :class="{'bg-white shadow text-black': bracketFilter === 'KATA', 'text-gray-500 hover:text-gray-700': bracketFilter !== 'KATA'}"
                             class="px-4 py-1.5 rounded-md text-xs font-bold transition uppercase flex items-center gap-2"><span
@@ -722,17 +814,20 @@
                     <p>No hay gráficas generadas o no hay coincidencias.</p>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div v-for="(bracket, catName) in filteredBrackets" :key="catName" @click="selectBracket(catName)"
+                    <div v-for="(bracket, bracketKey) in filteredBrackets" :key="bracketKey" @click="selectBracket(bracketKey)"
                         class="bg-white p-6 rounded-xl shadow border-2 border-transparent hover:border-blue-500 cursor-pointer transition hover:shadow-lg group">
                         <div class="flex justify-between items-start mb-2"><span
                                 class="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded uppercase">{{
                                 bracket.modality }}</span><span
                                 class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">{{
                                 bracket.competitors ? bracket.competitors.length : 0 }} Atletas</span></div>
-                        <h3 class="text-lg font-bold text-gray-800 leading-tight group-hover:text-blue-600">{{ catName
-                            }}</h3>
-                        <div class="mt-4 text-xs text-gray-400 flex items-center gap-1"><i class="fas fa-eye"></i> Ver
-                            Llave</div>
+                        <h3 class="text-lg font-bold text-gray-800 leading-tight group-hover:text-blue-600">{{ bracket.catName }}</h3>
+                        <div class="mt-4 flex items-center justify-between gap-2">
+                            <span class="text-xs text-gray-400 flex items-center gap-1"><i class="fas fa-eye"></i> Ver llave</span>
+                            <button @click.stop="exportBracketPdf(bracketKey)" class="rounded bg-red-700 px-3 py-2 text-xs font-black text-white hover:bg-red-800" title="Exportar gráfica a PDF">
+                                <i class="fas fa-file-pdf mr-1"></i>PDF
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -743,12 +838,15 @@
                         class="text-gray-600 hover:text-black font-bold flex items-center gap-2"><i
                             class="fas fa-arrow-left"></i> Volver</button>
                     <div class="text-center">
-                        <h2 class="text-xl font-black uppercase">{{ selectedBracketName }}</h2><span
+                        <h2 class="text-xl font-black uppercase">{{ brackets[selectedBracketName]?.catName || selectedBracketName }}</h2><span
                             class="text-xs text-gray-500 font-bold">GRÁFICA DE COMPETENCIA</span>
                     </div>
-                    <div></div>
+                    <button @click="exportBracketPdf(selectedBracketName)" class="rounded-lg bg-red-700 px-4 py-2 font-black text-white shadow hover:bg-red-800">
+                        <i class="fas fa-file-pdf mr-2"></i>EXPORTAR PDF
+                    </button>
                 </div>
                 <div class="flex-1 overflow-auto bg-gray-100 cursor-grab active:cursor-grabbing">
+                    <div class="bracket-canvas">
                     <div class="bracket-scroll-area">
                         <div v-for="(round, rIndex) in currentBracketRounds" :key="rIndex" class="round-column">
                             <div
@@ -766,6 +864,8 @@
                                             class="comp-name">{{ pair[0].p1 ? pair[0].p1.name : 'BYE' }}</span>
                                         <span v-if="pair[0].p1 && isDisqualified(pair[0].p1.id)"
                                             class="text-[9px] font-bold text-red-700">EXPULSADO</span>
+                                        <span v-if="pair[0].kikenAuto && pair[0].kikenSide === 'aka'"
+                                            class="text-[9px] font-black text-amber-700">KIKEN</span>
                                         <input v-if="pair[0].p1 && brackets[selectedBracketName]?.modality === 'KATA'"
                                             type="number" v-model="pair[0].kata1"
                                             @change="saveBracketUpdate(selectedBracketName)" @click.stop placeholder="#"
@@ -780,6 +880,8 @@
                                             class="comp-name">{{ pair[0].p2 ? pair[0].p2.name : 'BYE' }}</span>
                                         <span v-if="pair[0].p2 && isDisqualified(pair[0].p2.id)"
                                             class="text-[9px] font-bold text-red-700">EXPULSADO</span>
+                                        <span v-if="pair[0].kikenAuto && pair[0].kikenSide === 'ao'"
+                                            class="text-[9px] font-black text-amber-700">KIKEN</span>
                                         <input v-if="pair[0].p2 && brackets[selectedBracketName]?.modality === 'KATA'"
                                             type="number" v-model="pair[0].kata2"
                                             @change="saveBracketUpdate(selectedBracketName)" @click.stop placeholder="#"
@@ -803,6 +905,8 @@
                                             class="comp-name">{{ pair[1].p1 ? pair[1].p1.name : 'BYE' }}</span>
                                         <span v-if="pair[1].p1 && isDisqualified(pair[1].p1.id)"
                                             class="text-[9px] font-bold text-red-700">EXPULSADO</span>
+                                        <span v-if="pair[1].kikenAuto && pair[1].kikenSide === 'aka'"
+                                            class="text-[9px] font-black text-amber-700">KIKEN</span>
                                         <input v-if="pair[1].p1 && brackets[selectedBracketName]?.modality === 'KATA'"
                                             type="number" v-model="pair[1].kata1"
                                             @change="saveBracketUpdate(selectedBracketName)" @click.stop placeholder="#"
@@ -817,6 +921,8 @@
                                             class="comp-name">{{ pair[1].p2 ? pair[1].p2.name : 'BYE' }}</span>
                                         <span v-if="pair[1].p2 && isDisqualified(pair[1].p2.id)"
                                             class="text-[9px] font-bold text-red-700">EXPULSADO</span>
+                                        <span v-if="pair[1].kikenAuto && pair[1].kikenSide === 'ao'"
+                                            class="text-[9px] font-black text-amber-700">KIKEN</span>
                                         <input v-if="pair[1].p2 && brackets[selectedBracketName]?.modality === 'KATA'"
                                             type="number" v-model="pair[1].kata2"
                                             @change="saveBracketUpdate(selectedBracketName)" @click.stop placeholder="#"
@@ -839,6 +945,30 @@
                             </div>
                         </div>
                     </div>
+                    <section v-if="currentBracketPlacements" class="bracket-placements">
+                        <h3 class="mb-3 text-center text-xs font-black uppercase tracking-widest text-gray-500">Resultados finales</h3>
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                            <article class="bracket-placement bracket-placement-first">
+                                <span>1.er lugar</span><strong>{{ currentBracketPlacements.first.name }}</strong>
+                                <small>{{ currentBracketPlacements.first.dojo || currentBracketPlacements.first.municipio || '' }}</small>
+                            </article>
+                            <article class="bracket-placement bracket-placement-second">
+                                <span>2.º lugar</span><strong>{{ currentBracketPlacements.second.name }}</strong>
+                                <small>{{ currentBracketPlacements.second.dojo || currentBracketPlacements.second.municipio || '' }}</small>
+                            </article>
+                            <article class="bracket-placement bracket-placement-third">
+                                <span>3.er lugar · semifinal contra el campeón</span>
+                                <strong>{{ currentBracketPlacements.thirdWithChampion?.name || 'Sin definir' }}</strong>
+                                <small>{{ currentBracketPlacements.thirdWithChampion?.dojo || currentBracketPlacements.thirdWithChampion?.municipio || '' }}</small>
+                            </article>
+                            <article class="bracket-placement bracket-placement-third">
+                                <span>3.er lugar · semifinal contra el subcampeón</span>
+                                <strong>{{ currentBracketPlacements.thirdWithRunnerUp?.name || 'Sin definir' }}</strong>
+                                <small>{{ currentBracketPlacements.thirdWithRunnerUp?.dojo || currentBracketPlacements.thirdWithRunnerUp?.municipio || '' }}</small>
+                            </article>
+                        </div>
+                    </section>
+                    </div>
                 </div>
             </div>
 
@@ -847,7 +977,7 @@
                 <div v-if="activeMatchId"
                     class="bg-yellow-100 p-2 text-center border-b border-yellow-200 flex justify-between px-6 items-center mb-4 sticky top-0 z-50 rounded shadow-sm">
                     <span class="text-xs font-bold text-yellow-800 uppercase"><i class="fas fa-sitemap"></i> Modo Torneo
-                        - Match #{{ activeMatchId }} - {{ selectedBracketName }}</span>
+                        - Match #{{ activeMatchId }} - {{ brackets[selectedBracketName]?.catName || selectedBracketName }}</span>
                     <button @click="view='BRACKET_DETAIL'; activeMatchId=null"
                         class="text-yellow-800 hover:underline text-xs font-bold">Cancelar / Volver</button>
                 </div>
@@ -921,7 +1051,7 @@
                                 class="border-2 font-bold text-lg px-6 py-3 rounded-lg flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"><i
                                     class="fas fa-stopwatch"></i> {{ timerBtnText }}</button>
 
-                            <button @click="toggleTeamKataTimer" :disabled="!kataJudgeCount || (kataState.timerMode === 'team' && kataState.timer === 0)"
+                            <button @click="toggleTeamKataTimer" :disabled="!kataJudgeCount"
                                 :class="kataState.timerMode === 'team' && kataState.timerRunning ? 'bg-red-100 text-red-700 border-red-500' : 'bg-blue-50 text-blue-700 border-blue-500'"
                                 class="border-2 font-bold text-lg px-6 py-3 rounded-lg flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"><i
                                     class="fas fa-stopwatch"></i> {{ teamTimerBtnText }}</button>
@@ -933,6 +1063,20 @@
                             <button @click="openScoreboardWindow"
                                 class="bg-gray-800 text-white font-bold text-lg px-8 py-3 rounded-lg hover:bg-gray-700">MARCADOR
                                 EXTERNO (TV)</button>
+                            <template v-if="activeMatchId && activeKataMatch">
+                                <button @click="applyKataKiken('aka')"
+                                    :aria-label="`Kiken para ${activeKataMatch.p1.name}; gana ${activeKataMatch.p2.name}`"
+                                    :title="`Kiken para ${activeKataMatch.p1.name}; otorga el encuentro a ${activeKataMatch.p2.name}`"
+                                    class="bg-red-800 text-white font-black text-sm px-4 py-3 rounded-lg hover:bg-red-900 shadow">
+                                    <i class="fas fa-flag mr-1"></i> KIKEN · {{ activeKataMatch.p1.name }}
+                                </button>
+                                <button @click="applyKataKiken('ao')"
+                                    :aria-label="`Kiken para ${activeKataMatch.p2.name}; gana ${activeKataMatch.p1.name}`"
+                                    :title="`Kiken para ${activeKataMatch.p2.name}; otorga el encuentro a ${activeKataMatch.p1.name}`"
+                                    class="bg-blue-800 text-white font-black text-sm px-4 py-3 rounded-lg hover:bg-blue-900 shadow">
+                                    <i class="fas fa-flag mr-1"></i> KIKEN · {{ activeKataMatch.p2.name }}
+                                </button>
+                            </template>
                         </div>
                         <div v-if="!kataJudgeCount" class="text-center text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 font-bold">
                             Configure 5 o 7 jueces antes de comenzar.
@@ -1097,6 +1241,10 @@
                                         :aria-pressed="kumiteState.shikkaku === 'ao'"
                                         aria-label="Shikkaku AO">S</button>
                                 </div>
+                                <button @click="applyKumiteKiken('ao')"
+                                    :disabled="!!kumiteState.winner || kumiteState.medicalActive"
+                                    class="mt-3 w-full rounded-lg border-2 border-blue-800 bg-blue-800 px-3 py-2 text-sm font-black uppercase text-white shadow hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-40"
+                                    aria-label="Kiken AO; otorga la victoria a AKA">KIKEN AO</button>
 
                             </div>
                         </div>
@@ -1200,6 +1348,10 @@
                                         :aria-pressed="kumiteState.shikkaku === 'aka'"
                                         aria-label="Shikkaku AKA">S</button>
                                 </div>
+                                <button @click="applyKumiteKiken('aka')"
+                                    :disabled="!!kumiteState.winner || kumiteState.medicalActive"
+                                    class="mt-3 w-full rounded-lg border-2 border-red-800 bg-red-800 px-3 py-2 text-sm font-black uppercase text-white shadow hover:bg-red-900 disabled:cursor-not-allowed disabled:opacity-40"
+                                    aria-label="Kiken AKA; otorga la victoria a AO">KIKEN AKA</button>
 
                             </div>
                         </div>
@@ -1498,7 +1650,7 @@
                         </div>
                     </div>
 
-                    <footer class="kumite-tv-footer">
+                    <footer class="kumite-tv-footer" :class="{'kumite-tv-footer-clock-hidden': !kumiteState.showTimer && !kumiteState.medicalActive}">
                         <section class="kumite-tv-event-info">
                             <div class="kumite-tv-event-meta">
                                 <div class="kumite-tv-event-title">{{ globalState.eventName || 'CONFIGURAR TORNEO' }}</div>
@@ -1514,7 +1666,7 @@
                             </div>
                         </section>
 
-                        <section class="kumite-tv-clock" aria-label="Cronómetro">
+                        <section v-if="kumiteState.showTimer || kumiteState.medicalActive" class="kumite-tv-clock" aria-label="Cronómetro">
                             <div v-if="kumiteState.medicalActive" class="kumite-tv-medical-label">TIEMPO MÉDICO</div>
                             <div class="kumite-tv-clock-value" :class="{
                                 'kumite-tv-clock-running': kumiteState.timerRunning && !kumiteState.medicalActive && kumiteState.timer > 15999,
@@ -1530,6 +1682,17 @@
                             <div class="kumite-tv-match-number">{{ globalState.kumiteMatchNumber || '—' }}</div>
                         </section>
                     </footer>
+                </div>
+                <div v-if="isPopupMode && currentMode === 'KUMITE' && kumiteState.scoreAnnouncement"
+                    class="kumite-score-announcement"
+                    :class="kumiteState.scoreAnnouncement.side === 'aka' ? 'kumite-score-announcement-aka' : 'kumite-score-announcement-ao'"
+                    role="alert" aria-live="assertive">
+                    <span class="kumite-score-announcement-side">{{ kumiteState.scoreAnnouncement.side === 'aka' ? 'AKA · ROJO' : 'AO · AZUL' }}</span>
+                    <h1>{{ kumiteState.scoreAnnouncement.label }}</h1>
+                    <p>({{ kumiteState.scoreAnnouncement.pointsText }})</p>
+                    <img class="kumite-score-action"
+                        :src="'assets/kumite-' + (kumiteState.scoreAnnouncement.kind === 'wazaari' ? 'wazaari' : kumiteState.scoreAnnouncement.kind) + '.svg'"
+                        alt="" aria-hidden="true">
                 </div>
             </div>
 
@@ -1559,7 +1722,9 @@
     </div>
 
     <script type="module">
+        import { WEIGHTS_OLIMPIADA_NACIONAL, OLIMPIADA_AGE_GROUP_LABELS, getWeightClassLabel, getOlimpiadaNacionalWeightClass } from './weight-categories.mjs';
         import { createApp, reactive, ref, computed, onMounted, watch, nextTick } from './node_modules/vue/dist/vue.esm-browser.js';
+        import { getBracketPlacements, renderBracketPdfHtml } from './bracket-export.js';
 
         // --- CONFIGURACIÓN DE EMAILJS (Dominios permitidos en Dashboard) ---
         const EMAILJS_PUBLIC_KEY = '18LqgKqjBeAdDgtzX';
@@ -1581,7 +1746,8 @@
                 'U12': { M: [35, 40, 45, 999], F: [37, 42, 47, 999] }, 'U14': { M: [40, 45, 50, 55, 999], F: [42, 47, 52, 999] },
                 'CADETE': { M: [52, 57, 63, 70, 999], F: [47, 54, 61, 999] }, 'JUNIOR': { M: [55, 61, 68, 76, 999], F: [48, 53, 59, 66, 999] },
                 'U21': { M: [60, 67, 75, 84, 999], F: [50, 55, 61, 68, 999] }, 'SENIOR': { M: [60, 67, 75, 84, 999], F: [50, 55, 61, 68, 999] }
-            }
+            },
+            WEIGHTS_OLIMPIADA_NACIONAL
         };
 
         const dojosList = [
@@ -1621,7 +1787,7 @@
                 for (let i = 0; i < max; i++) { for (let m in g) { if (g[m][i]) s.push(g[m][i]) } }
                 return s
             },
-            create(c, n) {
+            create(c, n, eventId = 'local') {
                 const s = this.distribute([...c]);
                 let sz = 4;
                 if (c.length > 4) sz = 8;
@@ -1667,6 +1833,7 @@
                 this.propagateWinners(r);
                 return {
                     id: Date.now(),
+                    eventId,
                     catName: n,
                     modality: c[0].modality,
                     rounds: r,
@@ -1727,6 +1894,7 @@
                 let kataInterval = null;
                 const timerInterval = ref(null);
                 const medicalInterval = ref(null);
+                let scoreAnnouncementTimeout = null;
                 const channel = new BroadcastChannel('karate_manager_sync');
                 const isUpdatingFromSync = ref(false);
                 const isSendingEmail = ref(false);
@@ -1764,6 +1932,7 @@
                     ? (brackets.value[selectedBracketName.value]?.kataJudgeCount || tournamentKataJudges.value)
                     : (freeKataJudges.value || tournamentKataJudges.value));
                 let loadingKataMatch = false;
+                let kataKikenInProgress = false;
 
                 // JUDGE MOBILE STATE
                 const judgeViewData = reactive({ status: 'waiting', competitor: '', kata: '', category: '', round: '' });
@@ -1786,7 +1955,8 @@
                     akaName: 'Competidor Rojo', akaCode: 'TAM', akaMunicipio: null,
                     aoName: 'Competidor Azul', aoCode: 'REY', aoMunicipio: null,
                     akaScore: 0, aoScore: 0, akaPenalties: [], aoPenalties: [],
-                    timer: 180000, timerRunning: false, senshu: null, senshuTriggered: false, winner: null, shikkaku: null,
+                    timer: 180000, timerRunning: false, showTimer: false, senshu: null, senshuTriggered: false, winner: null, shikkaku: null, kikenSide: null,
+                    scoreAnnouncement: null,
                     medicalTimer: 180000, medicalActive: false, medicalRunning: false, medicalReady: false,
                     akaCounts: { yuko: 0, wazaari: 0, ippon: 0 },
                     aoCounts: { yuko: 0, wazaari: 0, ippon: 0 }
@@ -1806,6 +1976,43 @@
                      kumiteCategory: 'SEN', kumiteDivision: 'VAR · IND', kumiteWeight: '',
                      kumiteRound: '', kumiteMatchNumber: ''
                  });
+                 const currentEventStorageKey = 'karate_current_event';
+                 const currentEventIdStorageKey = 'karate_current_event_id';
+                 const activeEventId = computed(() => String(currentEvent.value?.id || 'local'));
+                 const normalizeEventId = eventId => !eventId || eventId === 'default' ? activeEventId.value : String(eventId);
+                 const eventIdForCompetitor = competitor => normalizeEventId(competitor?.eventId);
+                 const eventIdForBracket = bracket => {
+                     if (bracket?.eventId) return normalizeEventId(bracket.eventId);
+                     const legacyEvent = bracket?.competitors?.map(eventIdForCompetitor).find(id => id !== 'local');
+                     return legacyEvent || activeEventId.value;
+                 };
+                 const eventKataJudgeConfig = () => ({
+                     count: tournamentKataJudges.value,
+                     locked: kataJudgeConfigLocked.value,
+                     newTournament: newKataTournamentPending.value
+                 });
+                 const persistEvents = () => localStorage.setItem('karate_events', JSON.stringify(events.value));
+                 const persistCurrentEvent = () => {
+                     if (!currentEvent.value) return;
+                     const updatedEvent = { ...currentEvent.value, kataJudgeConfig: eventKataJudgeConfig() };
+                     currentEvent.value = updatedEvent;
+                     localStorage.setItem(currentEventStorageKey, JSON.stringify(updatedEvent));
+                     localStorage.setItem(currentEventIdStorageKey, updatedEvent.id);
+                     const savedIndex = events.value.findIndex(event => event.id === updatedEvent.id);
+                     if (savedIndex >= 0 || updatedEvent.id !== 'local' || !!updatedEvent.name?.trim()) {
+                         const nextEvents = events.value.slice();
+                         if (savedIndex >= 0) nextEvents[savedIndex] = updatedEvent;
+                         else nextEvents.push(updatedEvent);
+                         events.value = nextEvents;
+                         persistEvents();
+                     }
+                 };
+                 const normalizeBrackets = savedBrackets => Object.fromEntries(Object.entries(savedBrackets || {}).map(([key, bracket]) => {
+                     const inferredEventId = bracket?.competitors?.map(eventIdForCompetitor).find(id => id !== 'local');
+                     const eventId = bracket?.eventId ? normalizeEventId(bracket.eventId) : (inferredEventId || activeEventId.value);
+                     const categoryName = bracket?.catName || (key.includes('::') ? key.slice(key.indexOf('::') + 2) : key);
+                     return [key, { ...bracket, eventId, catName: categoryName }];
+                 }));
 
                  const resolveKataEntry = value => {
                      const text = String(value ?? '').trim();
@@ -1835,29 +2042,68 @@
                     }
 
                     {
-                        const se = localStorage.getItem('karate_events'); if (se) events.value = JSON.parse(se);
-                        const sc = localStorage.getItem('karate_competitors'); if (sc) competitors.value = JSON.parse(sc);
-                        const sb = localStorage.getItem('karate_brackets'); if (sb) brackets.value = JSON.parse(sb);
-                        const ss = localStorage.getItem('karate_shikkaku'); if (ss) shikkakuRecords.value = JSON.parse(ss);
-                        const savedTournamentName = localStorage.getItem(localTournamentNameKey)?.trim();
+                        const savedEvents = localStorage.getItem('karate_events');
+                        if (savedEvents) {
+                            const parsedEvents = JSON.parse(savedEvents);
+                            events.value = Array.isArray(parsedEvents) ? parsedEvents : [];
+                        }
+
+                        const savedCurrentEventId = localStorage.getItem(currentEventIdStorageKey);
+                        const savedCurrentEventRaw = localStorage.getItem(currentEventStorageKey);
+                        const savedCurrentEvent = savedCurrentEventRaw ? JSON.parse(savedCurrentEventRaw) : null;
+                        const storedEvent = events.value.find(event => event.id === savedCurrentEventId)
+                            || events.value.find(event => event.id === savedCurrentEvent?.id)
+                            || savedCurrentEvent
+                            || events.value[0];
+                        if (storedEvent) currentEvent.value = { ...storedEvent };
+
+                        const savedCompetitors = localStorage.getItem('karate_competitors');
+                        if (savedCompetitors) {
+                            const parsedCompetitors = JSON.parse(savedCompetitors);
+                            competitors.value = Array.isArray(parsedCompetitors)
+                                ? parsedCompetitors.map(competitor => ({ ...competitor, eventId: normalizeEventId(competitor.eventId) }))
+                                : [];
+                        }
+
+                        const savedBrackets = localStorage.getItem('karate_brackets');
+                        if (savedBrackets) brackets.value = normalizeBrackets(JSON.parse(savedBrackets));
+
+                        const savedShikkakuRecords = localStorage.getItem('karate_shikkaku');
+                        if (savedShikkakuRecords) {
+                            const parsedRecords = JSON.parse(savedShikkakuRecords);
+                            shikkakuRecords.value = Array.isArray(parsedRecords) ? parsedRecords.map(record => {
+                                const athlete = competitors.value.find(competitor => record.ids?.includes(competitor.id));
+                                return { ...record, eventId: normalizeEventId(record.eventId || athlete?.eventId) };
+                            }) : [];
+                        }
+
+                        const legacyTournamentName = localStorage.getItem(localTournamentNameKey)?.trim();
+                        const savedTournamentName = currentEvent.value.name?.trim()
+                            || (activeEventId.value === 'local' ? legacyTournamentName : '');
                         if (savedTournamentName) {
                             currentEvent.value = { ...currentEvent.value, name: savedTournamentName };
                             tournamentNameDraft.value = savedTournamentName;
                             tournamentNameSaved.value = true;
                             globalState.eventName = savedTournamentName;
                         }
-                        const judgeConfig = localStorage.getItem('karate_kata_judge_config');
-                        if (judgeConfig) {
-                            const saved = JSON.parse(judgeConfig);
-                            if ([5, 7].includes(saved.count)) tournamentKataJudges.value = saved.count;
-                            kataJudgeConfigLocked.value = !!saved.locked;
-                            newKataTournamentPending.value = !!saved.newTournament;
+
+                        const storedJudgeConfig = currentEvent.value.kataJudgeConfig
+                            || (activeEventId.value === 'local' && localStorage.getItem('karate_kata_judge_config')
+                                ? JSON.parse(localStorage.getItem('karate_kata_judge_config')) : null);
+                        if (storedJudgeConfig) {
+                            if ([5, 7].includes(storedJudgeConfig.count)) tournamentKataJudges.value = storedJudgeConfig.count;
+                            kataJudgeConfigLocked.value = !!storedJudgeConfig.locked;
+                            newKataTournamentPending.value = !!storedJudgeConfig.newTournament;
                         }
-                        const localTournamentLogo = localStorage.getItem('karate_event_logo_local');
+
+                        const localTournamentLogo = currentEvent.value.logoDataUrl
+                            || localStorage.getItem(eventLogoStorageKey(currentEvent.value));
                         if (localTournamentLogo) {
                             currentEvent.value.logoDataUrl = localTournamentLogo;
                             kataState.tvTournamentLogo = localTournamentLogo;
                         }
+                        localStorage.setItem(currentEventIdStorageKey, activeEventId.value);
+                        localStorage.setItem(currentEventStorageKey, JSON.stringify(currentEvent.value));
                         checkDeepLink();
                     }
 
@@ -2022,10 +2268,62 @@
 
                 // --- ACTIONS WITH FIRESTORE / LOCAL ---
                 // ... (Rest of actions preserved: createEvent, deleteEvent, etc.) ...
-                const createEvent = async () => {
-                    if (!eventForm.name) return alert("El nombre del evento es obligatorio.");
-                    const newEvent = { name: eventForm.name, startDate: eventForm.startDate, endDate: eventForm.endDate, location: eventForm.location, description: eventForm.description, createdAt: new Date().toISOString() };
-                    { events.value = events.value.filter(e => e.id !== id); localStorage.setItem('karate_events', JSON.stringify(events.value)); } if (currentEvent.value && currentEvent.value.id === id) { currentEvent.value = null; }
+                const prepareForEventSwitch = () => {
+                    if (kumiteState.medicalActive) {
+                        alert('Termina el tiempo médico antes de cambiar de evento.');
+                        return false;
+                    }
+                    persistCurrentEvent();
+                    if (activeMatchId.value) {
+                        if (currentMode.value === 'KUMITE') persistKumiteDraft();
+                        else persistKataDraft();
+                    }
+                    stopTimer();
+                    stopKataTimer();
+                    kumiteState.showTimer = false;
+                    kataState.showTimer = false;
+                    kataState.timerMode = null;
+                    kataState.timer = 35000;
+                    clearKumiteScoreAnnouncement();
+                    activeMatchId.value = null;
+                    selectedBracketName.value = null;
+                    return true;
+                };
+                const createEvent = () => {
+                    const name = String(eventForm.name || '').trim().replace(/\s+/g, ' ');
+                    if (!name) return alert('El nombre del evento es obligatorio.');
+                    if (!prepareForEventSwitch()) return;
+                    const newEvent = {
+                        id: globalThis.crypto?.randomUUID?.() || `evt-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                        name,
+                        startDate: eventForm.startDate,
+                        endDate: eventForm.endDate,
+                        location: String(eventForm.location || '').trim(),
+                        description: String(eventForm.description || '').trim(),
+                        createdAt: new Date().toISOString(),
+                        logoDataUrl: null,
+                        kataJudgeConfig: { count: null, locked: false, newTournament: false }
+                    };
+                    events.value = [...events.value, newEvent];
+                    tournamentKataJudges.value = null;
+                    kataJudgeConfigLocked.value = false;
+                    newKataTournamentPending.value = false;
+                    localStorage.removeItem('karate_kata_judge_config');
+                    currentEvent.value = newEvent;
+                    tournamentNameDraft.value = name;
+                    tournamentNameSaved.value = true;
+                    globalState.eventName = name;
+                    kataState.tvTournamentLogo = null;
+                    localStorage.setItem(localTournamentNameKey, name);
+                    persistEvents();
+                    persistCurrentEvent();
+                    eventForm.name = '';
+                    eventForm.startDate = '';
+                    eventForm.endDate = '';
+                    eventForm.location = '';
+                    eventForm.description = '';
+                    isEventModalOpen.value = false;
+                    view.value = 'REGISTRATION';
                 };
                 const saveTournamentName = () => {
                     const name = String(tournamentNameDraft.value || '').trim().replace(/\s+/g, ' ');
@@ -2045,6 +2343,7 @@
                     tournamentNameDraft.value = name;
                     tournamentNameSaved.value = true;
                     globalState.eventName = name;
+                    persistCurrentEvent();
                     return true;
                 };
                 const eventLogoStorageKey = event => `karate_event_logo_${event?.id || 'local'}`;
@@ -2078,11 +2377,7 @@
                         else localStorage.removeItem(key);
                         currentEvent.value = { ...event, logoDataUrl: dataUrl || null };
                         kataState.tvTournamentLogo = dataUrl || null;
-                        const savedEventIndex = events.value.findIndex(item => item.id === event.id);
-                        if (savedEventIndex >= 0) {
-                            events.value[savedEventIndex] = { ...events.value[savedEventIndex], logoDataUrl: dataUrl || null };
-                            localStorage.setItem('karate_events', JSON.stringify(events.value));
-                        }
+                        persistCurrentEvent();
                     } catch (error) {
                         console.error('No se pudo guardar el logo del torneo:', error);
                         alert('No se pudo guardar el logo. Reduce el tamaño del archivo e inténtalo de nuevo.');
@@ -2122,13 +2417,23 @@
                 };
                 const removeEventLogo = () => saveTournamentLogo(null);
                 const selectEvent = (evt) => {
+                    if (evt.id !== activeEventId.value && !prepareForEventSwitch()) return;
                     const savedLogo = localStorage.getItem(eventLogoStorageKey(evt));
                     currentEvent.value = { ...evt, logoDataUrl: evt.logoDataUrl || savedLogo || null };
                     kataState.tvTournamentLogo = currentEvent.value.logoDataUrl;
                     tournamentNameDraft.value = evt.name || '';
-                    tournamentNameSaved.value = false;
+                    tournamentNameSaved.value = !!evt.name;
                     view.value = 'REGISTRATION';
                     globalState.eventName = evt.name;
+                    localStorage.setItem(currentEventIdStorageKey, evt.id);
+                    localStorage.setItem(currentEventStorageKey, JSON.stringify(currentEvent.value));
+                    if (evt.name) localStorage.setItem(localTournamentNameKey, evt.name);
+                    const judgeConfig = evt.kataJudgeConfig;
+                    tournamentKataJudges.value = [5, 7].includes(judgeConfig?.count) ? judgeConfig.count : null;
+                    kataJudgeConfigLocked.value = !!judgeConfig?.locked;
+                    newKataTournamentPending.value = !!judgeConfig?.newTournament;
+                    if (judgeConfig) localStorage.setItem('karate_kata_judge_config', JSON.stringify(judgeConfig));
+                    else localStorage.removeItem('karate_kata_judge_config');
                 };
                 const exitEvent = () => { currentEvent.value = null; view.value = 'EVENTS_LIST'; };
                 const registerCompetitorLocal = () => { const competitor = { ...regForm, categoryLabel: calculatedCategory.value, teamMembers: regForm.type === 'TEAM' ? [...regForm.teamMembers] : [], eventId: currentEvent.value ? currentEvent.value.id : 'default' }; { competitor.id = Date.now().toString(); competitors.value.push(competitor); localStorage.setItem('karate_competitors', JSON.stringify(competitors.value)); } regForm.name = ''; regForm.weight = null; regForm.age = null; regForm.teamMembers = []; alert("Competidor registrado con éxito."); };
@@ -2148,7 +2453,45 @@
                 const deleteCompetitor = async (id) => { if (!confirm("¿Eliminar competidor?")) return; { competitors.value = competitors.value.filter(c => c.id !== id); localStorage.setItem('karate_competitors', JSON.stringify(competitors.value)); } };
                 const removePending = (index) => { pendingCompetitors.value.splice(index, 1); };
                 const clearAllData = () => { if (confirm("Borrar TODO local?")) { localStorage.clear(); location.reload(); } };
-                const downloadBackup = () => { const data = { timestamp: new Date().toISOString(), competitors: competitors.value, brackets: brackets.value, shikkakuRecords: shikkakuRecords.value, kataJudgeConfig: { count: tournamentKataJudges.value, locked: kataJudgeConfigLocked.value, newTournament: newKataTournamentPending.value } }; const jsonStr = JSON.stringify(data, null, 2); const blob = new Blob([jsonStr], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `karate_backup.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); };
+                const createBackupData = () => {
+                    const currentEventSnapshot = currentEvent.value
+                        ? { ...currentEvent.value, kataJudgeConfig: eventKataJudgeConfig() }
+                        : null;
+                    const backupEvents = events.value.map(event => ({ ...event }));
+                    if (currentEventSnapshot && (currentEventSnapshot.id !== 'local' || currentEventSnapshot.name)) {
+                        const savedIndex = backupEvents.findIndex(event => event.id === currentEventSnapshot.id);
+                        if (savedIndex >= 0) backupEvents[savedIndex] = currentEventSnapshot;
+                        else backupEvents.push(currentEventSnapshot);
+                    }
+                    return {
+                        format: 'karate-scoreboard-backup',
+                        version: 2,
+                        timestamp: new Date().toISOString(),
+                        currentEventId: activeEventId.value,
+                        currentEvent: currentEventSnapshot,
+                        tournamentName: currentEventSnapshot?.name || globalState.eventName || '',
+                        events: backupEvents,
+                        competitors: competitors.value,
+                        brackets: brackets.value,
+                        shikkakuRecords: shikkakuRecords.value,
+                        kataJudgeConfig: eventKataJudgeConfig()
+                    };
+                };
+                const downloadBackup = () => {
+                    const data = createBackupData();
+                    const jsonStr = JSON.stringify(data, null, 2);
+                    const blob = new Blob([jsonStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const anchor = document.createElement('a');
+                    const slug = String(data.tournamentName || 'local').normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+                        .replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-|-$/g, '').toLowerCase() || 'local';
+                    anchor.href = url;
+                    anchor.download = `karate_backup_${slug}_${new Date().toISOString().slice(0, 10)}.json`;
+                    document.body.appendChild(anchor);
+                    anchor.click();
+                    document.body.removeChild(anchor);
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                };
 
                 let backupDirHandle = null;
                 const isAutoBackupActive = ref(false);
@@ -2164,7 +2507,7 @@
                         autoBackupInterval = setInterval(async () => {
                             if (!backupDirHandle) return;
                             try {
-                                const data = { timestamp: new Date().toISOString(), competitors: competitors.value, brackets: brackets.value, shikkakuRecords: shikkakuRecords.value };
+                                const data = createBackupData();
                                 const jsonStr = JSON.stringify(data, null, 2);
 
                                 const timestampStr = new Date().toISOString().replace(/[:.]/g, '-');
@@ -2185,7 +2528,84 @@
                     }
                 };
                 const triggerImport = () => { document.getElementById('importFile').click(); };
-                const handleFileUpload = (event) => { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (e) => { const data = JSON.parse(e.target.result); competitors.value = data.competitors; brackets.value = data.brackets; shikkakuRecords.value = data.shikkakuRecords || []; localStorage.setItem('karate_competitors', JSON.stringify(competitors.value)); localStorage.setItem('karate_brackets', JSON.stringify(brackets.value)); localStorage.setItem('karate_shikkaku', JSON.stringify(shikkakuRecords.value)); if (data.kataJudgeConfig && [5, 7].includes(data.kataJudgeConfig.count)) { tournamentKataJudges.value = data.kataJudgeConfig.count; kataJudgeConfigLocked.value = !!data.kataJudgeConfig.locked; newKataTournamentPending.value = !!data.kataJudgeConfig.newTournament; saveKataJudgeConfig(); } else { tournamentKataJudges.value = null; kataJudgeConfigLocked.value = false; newKataTournamentPending.value = false; localStorage.removeItem('karate_kata_judge_config'); } alert("Backup restaurado (Local)."); }; reader.readAsText(file); };
+                const handleFileUpload = event => {
+                    const file = event.target.files?.[0];
+                    if (!file) return;
+                    const input = event.target;
+                    const reader = new FileReader();
+                    reader.onerror = () => {
+                        input.value = '';
+                        alert('No se pudo leer el archivo de respaldo.');
+                    };
+                    reader.onload = loadEvent => {
+                        try {
+                            const data = JSON.parse(loadEvent.target.result);
+                            if (!Array.isArray(data.competitors) || !data.brackets || typeof data.brackets !== 'object' || Array.isArray(data.brackets)) {
+                                throw new Error('El archivo no contiene una copia de Karate Scoreboard válida.');
+                            }
+                            if (!confirm('Importar este respaldo reemplazará los eventos, competidores y gráficas guardados en este equipo. ¿Continuar?')) {
+                                input.value = '';
+                                return;
+                            }
+
+                            const incomingEvents = Array.isArray(data.events) ? data.events.map(item => ({ ...item })) : events.value.slice();
+                            const requestedEventId = data.currentEventId || data.currentEvent?.id;
+                            const importedCurrentEvent = incomingEvents.find(item => item.id === requestedEventId)
+                                || data.currentEvent
+                                || currentEvent.value
+                                || incomingEvents[0]
+                                || { id: 'local', name: data.tournamentName || '', location: 'Local' };
+                            if (!importedCurrentEvent.name && data.tournamentName) importedCurrentEvent.name = data.tournamentName;
+                            if (!incomingEvents.some(item => item.id === importedCurrentEvent.id)
+                                && (importedCurrentEvent.id !== 'local' || importedCurrentEvent.name)) incomingEvents.push(importedCurrentEvent);
+
+                            events.value = incomingEvents;
+                            currentEvent.value = { ...importedCurrentEvent };
+                            competitors.value = data.competitors.map(competitor => ({
+                                ...competitor,
+                                eventId: normalizeEventId(competitor.eventId)
+                            }));
+                            brackets.value = normalizeBrackets(data.brackets);
+                            shikkakuRecords.value = (Array.isArray(data.shikkakuRecords) ? data.shikkakuRecords : []).map(record => {
+                                const athlete = competitors.value.find(competitor => record.ids?.includes(competitor.id));
+                                return { ...record, eventId: normalizeEventId(record.eventId || athlete?.eventId) };
+                            });
+
+                            const importedJudgeConfig = currentEvent.value.kataJudgeConfig || data.kataJudgeConfig;
+                            tournamentKataJudges.value = [5, 7].includes(importedJudgeConfig?.count) ? importedJudgeConfig.count : null;
+                            kataJudgeConfigLocked.value = !!importedJudgeConfig?.locked;
+                            newKataTournamentPending.value = !!importedJudgeConfig?.newTournament;
+                            if (importedJudgeConfig) localStorage.setItem('karate_kata_judge_config', JSON.stringify(importedJudgeConfig));
+                            else localStorage.removeItem('karate_kata_judge_config');
+
+                            tournamentNameDraft.value = currentEvent.value.name || data.tournamentName || '';
+                            tournamentNameSaved.value = !!tournamentNameDraft.value;
+                            globalState.eventName = tournamentNameDraft.value;
+                            kataState.tvTournamentLogo = currentEvent.value.logoDataUrl || null;
+                            if (currentEvent.value.logoDataUrl) localStorage.setItem(eventLogoStorageKey(currentEvent.value), currentEvent.value.logoDataUrl);
+                            else localStorage.removeItem(eventLogoStorageKey(currentEvent.value));
+
+                            localStorage.setItem('karate_competitors', JSON.stringify(competitors.value));
+                            localStorage.setItem('karate_brackets', JSON.stringify(brackets.value));
+                            localStorage.setItem('karate_shikkaku', JSON.stringify(shikkakuRecords.value));
+                            if (tournamentNameDraft.value) localStorage.setItem(localTournamentNameKey, tournamentNameDraft.value);
+                            localStorage.setItem(currentEventIdStorageKey, activeEventId.value);
+                            persistEvents();
+                            persistCurrentEvent();
+                            currentPage.value = 1;
+                            selectedBracketName.value = null;
+                            activeMatchId.value = null;
+                            view.value = 'REGISTRATION';
+                            alert('Respaldo completo restaurado en este equipo.');
+                        } catch (error) {
+                            console.error('No se pudo importar el respaldo:', error);
+                            alert(error.message || 'El archivo JSON no se pudo restaurar.');
+                        } finally {
+                            input.value = '';
+                        }
+                    };
+                    reader.readAsText(file);
+                };
                 const openEditModal = (comp, index, isRegistered = false) => { editingCompetitor.value = { ...comp }; editingIndex.value = index; editingIsRegistered.value = isRegistered; editField.value = 'name'; editValue.value = comp.name; isEditModalOpen.value = true; };
                 const closeEditModal = () => { isEditModalOpen.value = false; editingCompetitor.value = {}; editingIndex.value = -1; editingIsRegistered.value = false; };
                 const saveEdit = () => { const tempComp = { ...editingCompetitor.value, [editField.value]: editValue.value }; if (editField.value === 'age') tempComp.age = parseFloat(editValue.value); if (editField.value === 'weight') tempComp.weight = parseFloat(editValue.value); tempComp.categoryLabel = computeCategory(tempComp); if (editingIsRegistered.value) { const idx = competitors.value.findIndex(c => c.id === tempComp.id); if (idx !== -1) { competitors.value[idx] = tempComp; localStorage.setItem('karate_competitors', JSON.stringify(competitors.value)); } } else { if (editingIndex.value === -1) return; pendingCompetitors.value[editingIndex.value] = tempComp; } closeEditModal(); };
@@ -2241,7 +2661,9 @@
 
                 // Shikkaku is tied to the registration IDs explicitly selected by the operator.
                 // Names are deliberately not used: two different athletes can have the same name.
-                const disqualifiedIds = computed(() => new Set(shikkakuRecords.value.flatMap(record => record.ids)));
+                const disqualifiedIds = computed(() => new Set(shikkakuRecords.value
+                    .filter(record => normalizeEventId(record.eventId) === activeEventId.value)
+                    .flatMap(record => record.ids || [])));
                 const isDisqualified = (id) => !!id && disqualifiedIds.value.has(id);
                 const activeShikkakuMatch = computed(() => brackets.value[selectedBracketName.value]?.rounds?.flat().find(m => m.id === activeMatchId.value) || null);
                 const shikkakuAthlete = computed(() => shikkakuSide.value === 'aka' ? activeShikkakuMatch.value?.p1 : activeShikkakuMatch.value?.p2);
@@ -2249,9 +2671,12 @@
                 const shikkakuAthleteName = computed(() => shikkakuAthlete.value?.name || (shikkakuSide.value === 'aka' ? kumiteState.akaName : kumiteState.aoName));
                 const shikkakuCandidates = computed(() => {
                     const eventId = shikkakuAthlete.value?.eventId || currentEvent.value?.id || 'default';
-                    return competitors.value.filter(c => (c.eventId || 'default') === eventId && !isDisqualified(c.id));
+                    return competitors.value.filter(c => eventIdForCompetitor(c) === eventId && !isDisqualified(c.id));
                 });
-                const lastShikkaku = computed(() => localShikkakuUndo.value || shikkakuRecords.value.at(-1) || null);
+                const lastShikkaku = computed(() => {
+                    if (localShikkakuUndo.value && normalizeEventId(localShikkakuUndo.value.eventId) === activeEventId.value) return localShikkakuUndo.value;
+                    return shikkakuRecords.value.filter(record => normalizeEventId(record.eventId) === activeEventId.value).at(-1) || null;
+                });
                 const matchesShikkakuKumite = (snapshot) => {
                     const saved = JSON.parse(snapshot);
                     // Records saved before KT-02 have no timerRunning field; they were stopped on expulsion.
@@ -2275,6 +2700,7 @@
                 const cancelShikkaku = () => { shikkakuSide.value = null; shikkakuSelectedIds.value = []; };
                 const resolveDisqualifiedBrackets = (ids) => {
                     for (const bracket of Object.values(brackets.value)) {
+                        if (eventIdForBracket(bracket) !== activeEventId.value) continue;
                         if (!bracket.rounds?.length || !bracket.rounds[0].some(m => ids.has(m.p1?.id) || ids.has(m.p2?.id))) continue;
                         bracket.rounds.forEach((round, roundIndex) => {
                             round.forEach(m => {
@@ -2312,7 +2738,7 @@
                     if (!confirm(`¿Confirmar SHIKKAKU para ${shikkakuAthleteName.value}? El rival gana este combate. ${ids.length ? `Se excluirán ${ids.length} inscripciones seleccionadas del torneo.` : 'Sin inscripción seleccionada: solo este combate libre.'}`)) return;
 
                     const record = {
-                        ids, matchId: activeMatchId.value, bracketId: selectedBracketName.value,
+                        eventId: activeEventId.value, ids, matchId: activeMatchId.value, bracketId: selectedBracketName.value,
                         beforeBrackets: JSON.stringify(brackets.value), beforeKumite: JSON.stringify(kumiteState),
                         afterCompetitorIds: JSON.stringify(competitors.value.map(c => c.id))
                     };
@@ -2353,12 +2779,20 @@
                         // Undo restores the clock reading, not an interval that was stopped on expulsion.
                         kumiteState.timerRunning = false;
                     }
-                    if (localShikkakuUndo.value) localShikkakuUndo.value = null;
-                    else { shikkakuRecords.value.pop(); localStorage.setItem('karate_shikkaku', JSON.stringify(shikkakuRecords.value)); }
+                    if (localShikkakuUndo.value === record) localShikkakuUndo.value = null;
+                    else {
+                        const recordIndex = shikkakuRecords.value.lastIndexOf(record);
+                        if (recordIndex >= 0) shikkakuRecords.value.splice(recordIndex, 1);
+                        localStorage.setItem('karate_shikkaku', JSON.stringify(shikkakuRecords.value));
+                    }
                 };
 
                 // --- BRACKETS & LOGIC ---
-                const saveKataJudgeConfig = () => localStorage.setItem('karate_kata_judge_config', JSON.stringify({ count: tournamentKataJudges.value, locked: kataJudgeConfigLocked.value, newTournament: newKataTournamentPending.value }));
+                const saveKataJudgeConfig = () => {
+                    const config = eventKataJudgeConfig();
+                    localStorage.setItem('karate_kata_judge_config', JSON.stringify(config));
+                    persistCurrentEvent();
+                };
                 const setTournamentKataJudges = (count) => {
                     if (kataJudgeConfigLocked.value || ![5, 7].includes(count)) return;
                     tournamentKataJudges.value = count;
@@ -2366,6 +2800,7 @@
                     // but never infer notes or change already recorded winners.
                     let hasLegacyBrackets = false;
                     for (const bracket of Object.values(brackets.value)) {
+                        if (eventIdForBracket(bracket) !== activeEventId.value) continue;
                         if (bracket.modality === 'KATA' && !bracket.kataJudgeCount) {
                             bracket.kataJudgeCount = count;
                             hasLegacyBrackets = true;
@@ -2379,11 +2814,12 @@
                 };
                 const beginNewKataTournament = () => {
                     if (activeMatchId.value) { alert('Cierre el encuentro abierto antes de preparar otro torneo.'); return; }
-                    if (!tournamentKataJudges.value && Object.values(brackets.value).some(b => b.modality === 'KATA' && !b.kataJudgeCount)) {
+                    if (!tournamentKataJudges.value && Object.values(brackets.value).some(b => eventIdForBracket(b) === activeEventId.value && b.modality === 'KATA' && !b.kataJudgeCount)) {
                         alert('Primero configure los jueces de las gráficas antiguas para conservar su cantidad.'); return;
                     }
                     if (!confirm('¿Preparar una nueva configuración de jueces? No se borrarán las gráficas ni los resultados existentes. Antes de generar gráficas nuevas deberá elegir 5 o 7 jueces.')) return;
                     for (const bracket of Object.values(brackets.value)) {
+                        if (eventIdForBracket(bracket) !== activeEventId.value) continue;
                         if (bracket.modality === 'KATA' && !bracket.kataJudgeCount) bracket.kataJudgeCount = tournamentKataJudges.value;
                     }
                     localStorage.setItem('karate_brackets', JSON.stringify(brackets.value));
@@ -2395,13 +2831,20 @@
                 const generateBrackets = async () => {
                     if (!tournamentKataJudges.value) { alert('Configure 5 o 7 jueces de kata antes de generar gráficas.'); view.value = 'REGISTRATION'; return; }
                     const c = {};
-                    competitors.value.forEach(x => { if (isDisqualified(x.id)) return; if (!c[x.categoryLabel]) c[x.categoryLabel] = []; c[x.categoryLabel].push(x) });
-                    const newBrackets = newKataTournamentPending.value ? { ...brackets.value } : {};
-                    const tournamentNumber = Math.max(1, ...Object.keys(brackets.value).map(name => Number(name.match(/ · Torneo (\d+)$/)?.[1] || 1))) + 1;
+                    eventCompetitors.value.forEach(x => { if (isDisqualified(x.id)) return; if (!c[x.categoryLabel]) c[x.categoryLabel] = []; c[x.categoryLabel].push(x) });
+                    if (!Object.keys(c).length) { alert('Registra competidores para este evento antes de generar gráficas.'); return; }
+                    const eventId = activeEventId.value;
+                    const newBrackets = Object.fromEntries(Object.entries(brackets.value).filter(([, bracket]) =>
+                        eventIdForBracket(bracket) !== eventId || newKataTournamentPending.value));
+                    const existingEventNames = Object.values(brackets.value)
+                        .filter(bracket => eventIdForBracket(bracket) === eventId)
+                        .map(bracket => bracket.catName || '');
+                    const tournamentNumber = Math.max(1, ...existingEventNames.map(name => Number(name.match(/ · Torneo (\d+)$/)?.[1] || 1))) + 1;
                     const tournamentSuffix = newKataTournamentPending.value ? ` · Torneo ${tournamentNumber}` : '';
                     for (let k in c) {
-                        const key = k + tournamentSuffix;
-                        newBrackets[key] = BracketSystem.create(c[k], k);
+                        const categoryName = k + tournamentSuffix;
+                        const key = `${eventId}::${categoryName}`;
+                        newBrackets[key] = BracketSystem.create(c[k], categoryName, eventId);
                         if (newBrackets[key].modality === 'KATA') newBrackets[key].kataJudgeCount = tournamentKataJudges.value;
                     }
                     brackets.value = newBrackets;
@@ -2417,6 +2860,7 @@
                     if (!m.p1 || !m.p2) return;
                     if (isDisqualified(m.p1.id) || isDisqualified(m.p2.id)) { alert('Un atleta expulsado no puede disputar este encuentro.'); return; }
                     if (m.winner && !confirm("Reabrir combate finalizado?")) return;
+                    clearKumiteScoreAnnouncement();
                     activeMatchId.value = m.id;
                     const b = brackets.value[selectedBracketName.value];
                     currentMode.value = b.modality;
@@ -2486,28 +2930,103 @@
                         nextTick().then(() => { loadingKataMatch = false; });
                     } else {
                         stopTimer();
+                        if (medicalInterval.value) { clearInterval(medicalInterval.value); medicalInterval.value = null; }
                         kumiteState.medicalReady = false;
+                        kumiteState.medicalActive = false;
+                        kumiteState.medicalRunning = false;
                         kumiteState.akaName = m.p1.name;
                         kumiteState.akaMunicipio = p1M;
                         kumiteState.akaCode = p1M ? p1M.code : 'UNK';
                         kumiteState.aoName = m.p2.name;
                         kumiteState.aoMunicipio = p2M;
                         kumiteState.aoCode = p2M ? p2M.code : 'UNK';
-                        kumiteState.akaScore = m.score1;
-                        kumiteState.aoScore = m.score2;
+                        const draft = m.kumiteDraft || {};
+                        kumiteState.akaScore = draft.akaScore ?? m.score1 ?? 0;
+                        kumiteState.aoScore = draft.aoScore ?? m.score2 ?? 0;
+                        kumiteState.akaPenalties = [...(draft.akaPenalties || [])];
+                        kumiteState.aoPenalties = [...(draft.aoPenalties || [])];
+                        kumiteState.akaCounts = { yuko: 0, wazaari: 0, ippon: 0, ...(draft.akaCounts || {}) };
+                        kumiteState.aoCounts = { yuko: 0, wazaari: 0, ippon: 0, ...(draft.aoCounts || {}) };
+                        kumiteState.senshu = draft.senshu || null;
+                        kumiteState.senshuTriggered = !!draft.senshuTriggered;
+                        kumiteState.shikkaku = draft.shikkaku || null;
                         const rule = determineTimeRule(b.catName);
                         selectedTimeRule.value = rule;
-                        kumiteState.timer = m.timer ?? rule.seconds * 1000;
-                        kumiteState.senshu = null;
-                        kumiteState.senshuTriggered = false;
-                        kumiteState.shikkaku = null;
+                        kumiteState.timer = draft.timer ?? m.timer ?? rule.seconds * 1000;
+                        kumiteState.medicalTimer = draft.medicalTimer ?? 180000;
+                        kumiteState.medicalReady = !!draft.medicalReady || !!draft.medicalActive;
+                        kumiteState.showTimer = false;
                         kumiteState.winner = null;
+                        kumiteState.kikenSide = null;
+                        lastSavedKumiteSecond = Math.floor(kumiteState.timer / 1000);
                         Object.assign(globalState, getKumiteTVDetails(b, m));
                     }
                     view.value = 'OPERATOR';
                 };
-                const saveBracketUpdate = async (bracketId) => { { localStorage.setItem('karate_brackets', JSON.stringify(brackets.value)); } };
-                const finishKumiteMatch = async () => { if (!activeMatchId.value || kumiteState.medicalActive) return; const bracketId = selectedBracketName.value; const b = brackets.value[bracketId]; let match = null; for (let r of b.rounds) { const f = r.find(m => m.id === activeMatchId.value); if (f) match = f; } if (!match) return; match.score1 = kumiteState.akaScore; match.score2 = kumiteState.aoScore; let winner = null; if (kumiteState.winner === 'aka') winner = match.p1; else if (kumiteState.winner === 'ao') winner = match.p2; else if (kumiteState.akaScore > kumiteState.aoScore) winner = match.p1; else if (kumiteState.aoScore > kumiteState.akaScore) winner = match.p2; else if (kumiteState.senshu === 'aka') winner = match.p1; else if (kumiteState.senshu === 'ao') winner = match.p2; else { if (!confirm(`¡EMPATE! Puntos y Senshu son iguales.\n\n¿Hantei a favor de AKA (${match.p1.name})? (Aceptar para AKA, Cancelar para AO)`)) { winner = match.p2; } else { winner = match.p1; } } match.winner = winner; if (match.winner) { stopTimer(); BracketSystem.propagateWinners(b.rounds); if (disqualifiedIds.value.size) resolveDisqualifiedBrackets(disqualifiedIds.value); await saveBracketUpdate(bracketId); activeMatchId.value = null; view.value = 'BRACKET_DETAIL'; } };
+                const saveBracketUpdate = async (bracketId) => { localStorage.setItem('karate_brackets', JSON.stringify(brackets.value)); };
+                let lastSavedKumiteSecond = null;
+                const activeKumiteMatch = () => {
+                    const bracket = brackets.value[selectedBracketName.value];
+                    if (bracket?.modality !== 'KUMITE') return null;
+                    return bracket.rounds.flat().find(match => match.id === activeMatchId.value) || null;
+                };
+                const persistKumiteDraft = () => {
+                    const match = activeKumiteMatch();
+                    if (!match) return;
+                    match.kumiteDraft = {
+                        akaScore: kumiteState.akaScore, aoScore: kumiteState.aoScore,
+                        akaPenalties: [...kumiteState.akaPenalties], aoPenalties: [...kumiteState.aoPenalties],
+                        akaCounts: { ...kumiteState.akaCounts }, aoCounts: { ...kumiteState.aoCounts },
+                        senshu: kumiteState.senshu, senshuTriggered: kumiteState.senshuTriggered,
+                        timer: kumiteState.timer, medicalTimer: kumiteState.medicalTimer,
+                        medicalReady: kumiteState.medicalReady, medicalActive: kumiteState.medicalActive,
+                        shikkaku: kumiteState.shikkaku
+                    };
+                    lastSavedKumiteSecond = Math.floor(kumiteState.timer / 1000);
+                    localStorage.setItem('karate_brackets', JSON.stringify(brackets.value));
+                };
+                const finishKumiteMatch = async () => {
+                    if (!activeMatchId.value || kumiteState.medicalActive) return;
+                    const bracketId = selectedBracketName.value;
+                    const bracket = brackets.value[bracketId];
+                    const match = bracket?.rounds.flat().find(item => item.id === activeMatchId.value);
+                    if (!match) return;
+                    match.score1 = kumiteState.akaScore;
+                    match.score2 = kumiteState.aoScore;
+                    let winner = null;
+                    if (kumiteState.winner === 'aka') winner = match.p1;
+                    else if (kumiteState.winner === 'ao') winner = match.p2;
+                    else if (kumiteState.akaScore > kumiteState.aoScore) winner = match.p1;
+                    else if (kumiteState.aoScore > kumiteState.akaScore) winner = match.p2;
+                    else if (kumiteState.senshu === 'aka') winner = match.p1;
+                    else if (kumiteState.senshu === 'ao') winner = match.p2;
+                    else winner = confirm(`¡EMPATE! Puntos y Senshu son iguales.\n\n¿Hantei a favor de AKA (${match.p1.name})? (Aceptar para AKA, Cancelar para AO)`) ? match.p1 : match.p2;
+                    match.winner = winner;
+                    if (kumiteState.kikenSide) {
+                        match.kikenAuto = true;
+                        match.kikenSide = kumiteState.kikenSide;
+                    } else {
+                        delete match.kikenAuto;
+                        delete match.kikenSide;
+                    }
+                    delete match.kumiteDraft;
+                    stopTimer();
+                    BracketSystem.propagateWinners(bracket.rounds);
+                    if (disqualifiedIds.value.size) resolveDisqualifiedBrackets(disqualifiedIds.value);
+                    await saveBracketUpdate(bracketId);
+                    activeMatchId.value = null;
+                    view.value = 'BRACKET_DETAIL';
+                };
+                const applyKumiteKiken = async (loserSide) => {
+                    if (!['aka', 'ao'].includes(loserSide) || kumiteState.winner || kumiteState.medicalActive) return;
+                    const match = activeMatchId.value ? activeKumiteMatch() : null;
+                    if (activeMatchId.value && (!match?.p1 || !match?.p2)) return;
+                    clearKumiteScoreAnnouncement();
+                    stopTimer();
+                    kumiteState.kikenSide = loserSide;
+                    kumiteState.winner = loserSide === 'aka' ? 'ao' : 'aka';
+                    if (activeMatchId.value) await finishKumiteMatch();
+                };
                 const nextKataCompetitor = async () => {
                     if (!activeMatchId.value) return;
                     const bracketId = selectedBracketName.value;
@@ -2562,6 +3081,8 @@
                         akaScores: [...kataState.akaScores], aoScores: [...kataState.aoScores],
                         akaVotes: kataState.akaVotes, aoVotes: kataState.aoVotes
                     };
+                    delete match.kikenAuto;
+                    delete match.kikenSide;
                     match.winner = kataState.akaVotes > kataState.aoVotes ? match.p1 : match.p2;
                     stopKataTimer();
                     kataState.showTimer = false;
@@ -2575,12 +3096,48 @@
                     activeMatchId.value = null;
                     view.value = 'BRACKET_DETAIL';
                 };
+                const applyKataKiken = async (loserSide) => {
+                    if (kataKikenInProgress || !['aka', 'ao'].includes(loserSide) || !activeMatchId.value || !activeKataMatch.value) return;
+                    const bracketId = selectedBracketName.value;
+                    const bracket = brackets.value[bracketId];
+                    const match = activeKataMatch.value;
+                    if (bracket?.modality !== 'KATA' || !match.p1 || !match.p2) return;
+                    kataKikenInProgress = true;
+                    const winnerSide = loserSide === 'aka' ? 'ao' : 'aka';
+                    const winner = winnerSide === 'aka' ? match.p1 : match.p2;
+                    const winnerMunicipio = municipios.find(item => item.name === winner.municipio);
+                    match.kikenAuto = true;
+                    match.kikenSide = loserSide;
+                    match.winner = winner;
+                    stopKataTimer();
+                    kataState.timerMode = null;
+                    kataState.showTimer = false;
+                    kataState.showVotes = false;
+                    kataState.tvVotesVisible = false;
+                    kataState.tvAkaVotes = 0;
+                    kataState.tvAoVotes = 0;
+                    kataState.tvWinner = winnerSide;
+                    kataState.tvSide = winnerSide;
+                    kataState.competitorName = winner.name;
+                    kataState.countryName = winner.municipio;
+                    kataState.countryCode = winnerMunicipio ? winnerMunicipio.code : 'UNK';
+                    kataState.kataName = resolveKataEntry(match[winnerSide === 'aka' ? 'kata1' : 'kata2'])?.legacy || '';
+                    try {
+                        BracketSystem.propagateWinners(bracket.rounds);
+                        await saveBracketUpdate(bracketId);
+                        activeMatchId.value = null;
+                        view.value = 'BRACKET_DETAIL';
+                    } finally {
+                        kataKikenInProgress = false;
+                    }
+                };
 
                 // --- HELPERS ---
-                const kataCount = computed(() => competitors.value.filter(c => c.modality === 'KATA').length);
-                const kumiteCount = computed(() => competitors.value.filter(c => c.modality === 'KUMITE').length);
+                const eventCompetitors = computed(() => competitors.value.filter(competitor => eventIdForCompetitor(competitor) === activeEventId.value));
+                const kataCount = computed(() => eventCompetitors.value.filter(c => c.modality === 'KATA').length);
+                const kumiteCount = computed(() => eventCompetitors.value.filter(c => c.modality === 'KUMITE').length);
                 const timerBtnText = computed(() => kataState.timerMode === 'preparation' && kataState.timerRunning ? 'DETENER (35s)' : 'INICIAR (35s)');
-                const teamTimerBtnText = computed(() => kataState.timerMode !== 'team' ? 'INICIAR (5:00)' : (kataState.timerRunning ? 'DETENER (5:00)' : 'REANUDAR (5:00)'));
+                const teamTimerBtnText = computed(() => kataState.timerMode !== 'team' ? 'INICIAR (5:00)' : (kataState.timerRunning ? 'DETENER (5:00)' : (kataState.timer > 0 ? 'DETENER (5:00)' : 'OCULTAR (5:00)')));
 
                 const getKumiteTVDetails = (bracket, match) => {
                     const competitor = match?.p1 || {};
@@ -2603,14 +3160,66 @@
                         kumiteMatchNumber: Number.isInteger(match?.index) ? String(match.index + 1) : ''
                     };
                 };
-                const computeCategory = (data) => { const a = data.age; if (!a) return 'Ingrese la edad...'; const g = RULES.AGE_GROUPS.find(x => a >= x.min && a <= x.max); if (!g) return "Edad fuera de rango permitido"; let s = `${g.label} ${data.gender} - ${data.modality} (${data.type})`; if (data.modality === 'KUMITE' && data.type === 'INDIVIDUAL' && data.weight) { const weightList = data.weightType === 'NACIONAL' ? RULES.WEIGHTS_NACIONAL : RULES.WEIGHTS_ESTATAL; const wR = weightList[g.id]?.[data.gender]; if (wR) for (let w of wR) { if (data.weight <= (w === 999 ? 1000 : w)) { s += ` ${w === 999 ? '+' + wR[wR.length - 2] : '-' + w}kg`; break; } } } return s; };
-                const isValidRegistration = computed(() => regForm.name && regForm.age && calculatedCategory.value && !calculatedCategory.value.includes('fuera de rango'));
+                const computeCategory = (data) => {
+                    const age = Number(data.age);
+                    if (!data.age) return 'Ingrese la edad...';
+                    const ageGroup = RULES.AGE_GROUPS.find(group => age >= group.min && age <= group.max);
+                    if (!ageGroup) return 'Edad fuera de rango permitido';
+                    const isKumiteIndividual = data.modality === 'KUMITE' && data.type === 'INDIVIDUAL';
+                    const isOlimpiadaNacional = isKumiteIndividual && data.weightType === 'OLIMPIADA_NACIONAL';
+                    if (isOlimpiadaNacional && !RULES.WEIGHTS_OLIMPIADA_NACIONAL[ageGroup.id]?.[data.gender]) {
+                        return 'Olimpiada Nacional solo contempla edades de 14-15, 16-17 y 18-20 años';
+                    }
+                    const ageGroupLabel = isOlimpiadaNacional
+                        ? OLIMPIADA_AGE_GROUP_LABELS[ageGroup.id]
+                        : ageGroup.label;
+                    const genderLabel = isOlimpiadaNacional
+                        ? (data.gender === 'F' ? 'FEMENIL' : 'VARONIL')
+                        : data.gender;
+                    let category = `${ageGroupLabel} ${genderLabel} - ${data.modality} (${data.type})`;
+                    const hasWeight = data.weight !== null && data.weight !== ''
+                        && Number.isFinite(Number(data.weight)) && Number(data.weight) > 0;
+                    if (isKumiteIndividual && hasWeight) {
+                        const weightClass = isOlimpiadaNacional
+                            ? getOlimpiadaNacionalWeightClass(Number(data.weight), ageGroup.id, data.gender)
+                            : getWeightClassLabel(Number(data.weight), (data.weightType === 'NACIONAL'
+                                ? RULES.WEIGHTS_NACIONAL
+                                : RULES.WEIGHTS_ESTATAL)[ageGroup.id]?.[data.gender]);
+                        if (weightClass) category += ` ${weightClass}`;
+                    }
+                    return category;
+                };
+                const isValidRegistration = computed(() => {
+                    const hasRequiredWeight = regForm.modality !== 'KUMITE' || regForm.type !== 'INDIVIDUAL'
+                        || (Number.isFinite(Number(regForm.weight)) && Number(regForm.weight) > 0);
+                    return Boolean(regForm.name && regForm.age && hasRequiredWeight && calculatedCategory.value
+                        && !calculatedCategory.value.includes('fuera de rango')
+                        && !calculatedCategory.value.startsWith('Olimpiada Nacional solo contempla'));
+                });
                 const calculatedCategory = computed(() => { return computeCategory(regForm); });
-                const filteredCompetitors = computed(() => { let list = competitors.value.slice().reverse(); if (competitorFilter.value !== 'ALL') { list = list.filter(c => c.modality === competitorFilter.value); } if (competitorSearchQuery.value.trim() !== '') { const sq = competitorSearchQuery.value.toLowerCase(); list = list.filter(c => c.name.toLowerCase().includes(sq)); } return list; });
+                const filteredCompetitors = computed(() => {
+                    let list = eventCompetitors.value.slice().reverse();
+                    if (competitorFilter.value !== 'ALL') list = list.filter(c => c.modality === competitorFilter.value);
+                    if (competitorSearchQuery.value.trim() !== '') {
+                        const query = competitorSearchQuery.value.toLowerCase();
+                        list = list.filter(c => String(c.name || '').toLowerCase().includes(query));
+                    }
+                    return list;
+                });
                 const totalPages = computed(() => { return Math.ceil(filteredCompetitors.value.length / itemsPerPage.value) || 1; });
                 const paginatedCompetitors = computed(() => { const start = (currentPage.value - 1) * itemsPerPage.value; return filteredCompetitors.value.slice(start, start + itemsPerPage.value); });
                 watch([competitorFilter, competitorSearchQuery], () => { currentPage.value = 1; });
-                const filteredBrackets = computed(() => { const result = {}; const sq = bracketSearchQuery.value.toLowerCase(); for (const [catName, bracket] of Object.entries(brackets.value)) { if (bracketFilter.value !== 'ALL' && bracket.modality !== bracketFilter.value) continue; if (sq.trim() !== '' && !catName.toLowerCase().includes(sq)) continue; result[catName] = bracket; } return result; });
+                const filteredBrackets = computed(() => {
+                    const result = {};
+                    const query = bracketSearchQuery.value.trim().toLowerCase();
+                    for (const [bracketKey, bracket] of Object.entries(brackets.value)) {
+                        if (eventIdForBracket(bracket) !== activeEventId.value) continue;
+                        if (bracketFilter.value !== 'ALL' && bracket.modality !== bracketFilter.value) continue;
+                        if (query && !String(bracket.catName || bracketKey).toLowerCase().includes(query)) continue;
+                        result[bracketKey] = bracket;
+                    }
+                    return result;
+                });
                 const filteredDojos = computed(() => { if (!regForm.dojo) return dojosList; return dojosList.filter(d => d.toLowerCase().includes(regForm.dojo.toLowerCase())); });
                 const filteredKatas = computed(() => {
                     const query = kataSearchQuery.value.trim().toLowerCase();
@@ -2619,8 +3228,12 @@
                         || entry.legacy.toLowerCase().includes(query));
                 });
                 const filteredMunicipios = computed(() => { if (!municipioSearchQuery.value) return municipios; return municipios.filter(m => m.name.toLowerCase().includes(municipioSearchQuery.value.toLowerCase())); });
-                const currentBracketRounds = computed(() => selectedBracketName.value ? brackets.value[selectedBracketName.value].rounds : []);
-                const currentBracketWinner = computed(() => selectedBracketName.value ? brackets.value[selectedBracketName.value].rounds.slice(-1)[0][0]?.winner : null);
+                const currentBracketRounds = computed(() => selectedBracketName.value ? brackets.value[selectedBracketName.value]?.rounds || [] : []);
+                const currentBracketWinner = computed(() => currentBracketRounds.value.slice(-1)[0]?.[0]?.winner || null);
+                const currentBracketPlacements = computed(() => selectedBracketName.value
+                    ? getBracketPlacements(brackets.value[selectedBracketName.value]) : null);
+                const eventCompetitorCount = eventId => competitors.value.filter(competitor => eventIdForCompetitor(competitor) === String(eventId)).length;
+                const eventBracketCount = eventId => Object.values(brackets.value).filter(bracket => eventIdForBracket(bracket) === String(eventId)).length;
                 const sortedEvents = computed(() => { return events.value.slice().sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)); });
                 const isRemoveSenshuEnabled = computed(() => { const hasHC = kumiteState.akaPenalties.includes('HANSOKU CHUI') || kumiteState.aoPenalties.includes('HANSOKU CHUI'); const last15 = kumiteState.timer <= 15999; return !!kumiteState.senshu && (hasHC || last15); });
                 const getEventDateDisplay = (e) => { if (!e.startDate) return 'Fecha por definir'; return new Date(e.startDate).toLocaleDateString(); };
@@ -2647,6 +3260,32 @@
                     if (parts.length < 2) return { lastName: parts[0] || '', firstName: '' };
                     return { lastName: parts.at(-1), firstName: parts.slice(0, -1).join(' ') };
                 };
+                const exportBracketPdf = async bracketKey => {
+                    const bracket = brackets.value[bracketKey];
+                    if (!bracket) { alert('No se encontró la gráfica seleccionada.'); return; }
+                    if (typeof window.electronAPI?.exportBracketPdf !== 'function') {
+                        alert('La exportación de gráficas a PDF está disponible desde la aplicación de escritorio.');
+                        return;
+                    }
+                    const html = renderBracketPdfHtml({
+                        eventName: currentEvent.value?.name || globalState.eventName,
+                        eventLocation: currentEvent.value?.location,
+                        bracket
+                    });
+                    const fileName = `Karate - ${currentEvent.value?.name || 'Torneo local'} - ${bracket.catName || 'Grafica'}`;
+                    try {
+                        const result = await window.electronAPI.exportBracketPdf({ html, fileName });
+                        if (result?.canceled) return;
+                        if (!result?.ok) {
+                            alert(result?.error || 'No se pudo generar el PDF.');
+                            return;
+                        }
+                        alert('La gráfica se guardó como PDF.');
+                    } catch (error) {
+                        console.error('No se pudo exportar la gráfica:', error);
+                        alert('No se pudo generar el PDF. Inténtalo de nuevo.');
+                    }
+                };
                 const openScoreboardWindow = () => { const url = window.location.href.split('?')[0]; window.open(url + `?view=scoreboard&mode=${currentMode.value}`, 'ScoreboardWindow', 'width=1280,height=720,menubar=no,toolbar=no,location=no') };
                 const checkAutoWin = () => {
                     if (kumiteState.winner || kumiteState.medicalActive) return;
@@ -2662,11 +3301,15 @@
                 const startTimer = () => {
                     if (timerInterval.value || kumiteState.winner || kumiteState.timer <= 0 || kumiteState.medicalActive) return;
                     kumiteState.medicalReady = false;
+                    kumiteState.showTimer = true;
                     kumiteState.timerRunning = true;
+                    lastSavedKumiteSecond = null;
+                    persistKumiteDraft();
                     timerInterval.value = setInterval(() => {
                         kumiteState.timer = Math.max(0, kumiteState.timer - 100);
                         if (kumiteState.timer === 0) stopTimer();
                         checkAutoWin();
+                        if (Math.floor(kumiteState.timer / 1000) !== lastSavedKumiteSecond) persistKumiteDraft();
                     }, 100);
                 };
                 const stopTimer = () => {
@@ -2677,7 +3320,9 @@
                     if (kumiteState.medicalActive) return;
                     const wasRunning = kumiteState.timerRunning;
                     stopTimer();
+                    kumiteState.showTimer = false;
                     if (wasRunning && kumiteState.timer > 0 && !kumiteState.winner) kumiteState.medicalReady = true;
+                    persistKumiteDraft();
                 };
                 const endMedical = () => {
                     if (!kumiteState.medicalActive) return;
@@ -2686,21 +3331,26 @@
                     kumiteState.medicalActive = false;
                     kumiteState.medicalReady = false;
                     kumiteState.medicalTimer = 180000;
+                    kumiteState.showTimer = true;
+                    persistKumiteDraft();
                 };
                 const resetMedical = () => endMedical();
                 const startMedical = () => {
                     if (!kumiteState.medicalReady || kumiteState.medicalActive || kumiteState.timerRunning || kumiteState.winner || kumiteState.timer <= 0) return;
-                    kumiteState.medicalTimer = 180000;
+                    if (kumiteState.medicalTimer <= 0) kumiteState.medicalTimer = 180000;
                     kumiteState.medicalActive = true;
                     kumiteState.medicalRunning = true;
                     kumiteState.medicalReady = false;
+                    kumiteState.showTimer = true;
+                    persistKumiteDraft();
                     medicalInterval.value = setInterval(() => {
                         kumiteState.medicalTimer = Math.max(0, kumiteState.medicalTimer - 100);
                         if (kumiteState.medicalTimer === 0) endMedical();
+                        else if (kumiteState.medicalTimer % 1000 === 0) persistKumiteDraft();
                     }, 100);
                 };
-                const resetTimer = () => { if (kumiteState.medicalActive) return; stopTimer(); kumiteState.medicalReady = false; kumiteState.timer = selectedTimeRule.value.seconds * 1000; kumiteState.winner = null; };
-                const adjustTimer = (unit, amount) => { if (kumiteState.medicalActive) return; let newTime = kumiteState.timer; if (unit === 'min') { newTime += (amount * 60000); } else if (unit === 'sec') { newTime += (amount * 1000); } if (newTime < 0) newTime = 0; if (newTime === 0) { stopTimer(); kumiteState.medicalReady = false; } kumiteState.timer = newTime; };
+                const resetTimer = () => { if (kumiteState.medicalActive) return; stopTimer(); kumiteState.medicalReady = false; kumiteState.showTimer = false; kumiteState.timer = selectedTimeRule.value.seconds * 1000; kumiteState.winner = null; kumiteState.kikenSide = null; persistKumiteDraft(); };
+                const adjustTimer = (unit, amount) => { if (kumiteState.medicalActive) return; let newTime = kumiteState.timer; if (unit === 'min') { newTime += (amount * 60000); } else if (unit === 'sec') { newTime += (amount * 1000); } if (newTime < 0) newTime = 0; if (newTime === 0) { stopTimer(); kumiteState.medicalReady = false; } kumiteState.timer = newTime; persistKumiteDraft(); };
                 const startColorChange = () => { if (kumiteState.medicalActive) return; resetTimer(); kumiteState.timer = 300000; startTimer(); };
                 const wouldFinishDuringMedical = (side, points) => {
                     if (!kumiteState.medicalActive) return false;
@@ -2709,6 +3359,26 @@
                     if (Math.abs(aka - ao) < 8) return false;
                     alert('Termine el tiempo médico antes de registrar una puntuación que decida el encuentro.');
                     return true;
+                };
+                const announceKumiteScore = (side, points) => {
+                    const scoreTypes = {
+                        1: { kind: 'yuko', label: 'YUKO', pointsText: 'ONE POINT' },
+                        2: { kind: 'wazaari', label: 'WAZA-ARI', pointsText: 'TWO POINTS' },
+                        3: { kind: 'ippon', label: 'IPPON', pointsText: 'THREE POINTS' }
+                    };
+                    const score = scoreTypes[points];
+                    if (!score) return;
+                    if (scoreAnnouncementTimeout) clearTimeout(scoreAnnouncementTimeout);
+                    kumiteState.scoreAnnouncement = { ...score, side, id: `${Date.now()}-${Math.random()}` };
+                    scoreAnnouncementTimeout = setTimeout(() => {
+                        kumiteState.scoreAnnouncement = null;
+                        scoreAnnouncementTimeout = null;
+                    }, 1500);
+                };
+                const clearKumiteScoreAnnouncement = () => {
+                    if (scoreAnnouncementTimeout) clearTimeout(scoreAnnouncementTimeout);
+                    scoreAnnouncementTimeout = null;
+                    kumiteState.scoreAnnouncement = null;
                 };
                 const addPoints = (s, p) => {
                     if (kumiteState.winner || wouldFinishDuringMedical(s, p)) return;
@@ -2723,7 +3393,9 @@
                         if (p === 2) kumiteState.aoCounts.wazaari++;
                         if (p === 3) kumiteState.aoCounts.ippon++;
                     }
+                    announceKumiteScore(s, p);
                     checkAutoWin();
+                    persistKumiteDraft();
                 };
                 const removePoints = (s, p) => {
                     if (kumiteState.winner) return;
@@ -2743,12 +3415,13 @@
                         else if (p === 3 && kumiteState.aoCounts.ippon > 0) { kumiteState.aoScore -= 3; kumiteState.aoCounts.ippon--; }
                         else if (p === 0 && kumiteState.aoScore > 0) { kumiteState.aoScore -= 1; }
                     }
+                    persistKumiteDraft();
                 };
-                const togglePenalty = (s, t) => { const tg = s === 'aka' ? kumiteState.akaPenalties : kumiteState.aoPenalties; const i = tg.indexOf(t); if (i > -1) tg.splice(i, 1); else tg.push(t) };
-                const setSenshu = (side) => { if (kumiteState.senshu === side || (kumiteState.senshuTriggered && !isRemoveSenshuEnabled.value)) return; kumiteState.senshu = side; kumiteState.senshuTriggered = true; }
-                const removeSenshu = () => { if (!isRemoveSenshuEnabled.value) return; kumiteState.senshu = null; kumiteState.senshuTriggered = false; }
-                const applyHansoku = (loserSide) => { if (kumiteState.medicalActive || !confirm(`¿Confirmar HANSOKU para ${loserSide.toUpperCase()}?`)) return; stopTimer(); kumiteState.winner = loserSide === 'aka' ? 'ao' : 'aka'; if (loserSide === 'aka') { if (!kumiteState.akaPenalties.includes('HANSOKU')) kumiteState.akaPenalties.push('HANSOKU'); } else { if (!kumiteState.aoPenalties.includes('HANSOKU')) kumiteState.aoPenalties.push('HANSOKU'); } };
-                const resetMatch = () => { if (kumiteState.medicalActive) return; resetTimer(); kumiteState.akaScore = 0; kumiteState.aoScore = 0; kumiteState.akaPenalties = []; kumiteState.aoPenalties = []; kumiteState.senshu = null; kumiteState.senshuTriggered = false; kumiteState.winner = null; kumiteState.shikkaku = null; kumiteState.akaCounts = {yuko: 0, wazaari: 0, ippon: 0}; kumiteState.aoCounts = {yuko: 0, wazaari: 0, ippon: 0}; if (localShikkakuUndo.value) localShikkakuUndo.value = null; };
+                const togglePenalty = (s, t) => { const tg = s === 'aka' ? kumiteState.akaPenalties : kumiteState.aoPenalties; const i = tg.indexOf(t); if (i > -1) tg.splice(i, 1); else tg.push(t); persistKumiteDraft(); };
+                const setSenshu = (side) => { if (kumiteState.senshu === side || (kumiteState.senshuTriggered && !isRemoveSenshuEnabled.value)) return; kumiteState.senshu = side; kumiteState.senshuTriggered = true; persistKumiteDraft(); }
+                const removeSenshu = () => { if (!isRemoveSenshuEnabled.value) return; kumiteState.senshu = null; kumiteState.senshuTriggered = false; persistKumiteDraft(); }
+                const applyHansoku = (loserSide) => { if (kumiteState.medicalActive || !confirm(`¿Confirmar HANSOKU para ${loserSide.toUpperCase()}?`)) return; stopTimer(); kumiteState.winner = loserSide === 'aka' ? 'ao' : 'aka'; if (loserSide === 'aka') { if (!kumiteState.akaPenalties.includes('HANSOKU')) kumiteState.akaPenalties.push('HANSOKU'); } else { if (!kumiteState.aoPenalties.includes('HANSOKU')) kumiteState.aoPenalties.push('HANSOKU'); } persistKumiteDraft(); };
+                const resetMatch = () => { if (kumiteState.medicalActive) return; clearKumiteScoreAnnouncement(); resetTimer(); kumiteState.akaScore = 0; kumiteState.aoScore = 0; kumiteState.akaPenalties = []; kumiteState.aoPenalties = []; kumiteState.senshu = null; kumiteState.senshuTriggered = false; kumiteState.winner = null; kumiteState.shikkaku = null; kumiteState.kikenSide = null; kumiteState.akaCounts = {yuko: 0, wazaari: 0, ippon: 0}; kumiteState.aoCounts = {yuko: 0, wazaari: 0, ippon: 0}; if (localShikkakuUndo.value) localShikkakuUndo.value = null; persistKumiteDraft(); };
                 const applyTimeRule = () => {
                     if (kumiteState.medicalActive) return;
                     resetTimer();
@@ -2777,8 +3450,14 @@
                     if (kataInterval) { clearInterval(kataInterval); kataInterval = null; }
                     kataState.timerRunning = false;
                 };
+                const isTeamKataSelected = () => /TEAM|EQUIPO/i.test([
+                    kataState.modalityName,
+                    kataState.selectedCategoryRule?.label,
+                    kataState.selectedCategoryRule?.line2
+                ].filter(Boolean).join(' '));
                 const runKataTimer = () => {
                     kataState.timerRunning = true;
+                    kataState.showTimer = true;
                     kataInterval = setInterval(() => {
                         kataState.timer = Math.max(0, kataState.timer - 100);
                         if (kataState.timer === 0) stopKataTimer();
@@ -2786,7 +3465,20 @@
                 };
                 const toggleKataTimer = () => {
                     if (!kataJudgeCount.value || kataState.timerMode === 'team') return;
-                    if (kataState.timerMode === 'preparation' && kataState.timerRunning) { stopKataTimer(); return; }
+                    if (kataState.timerMode === 'preparation' && kataState.timerRunning) {
+                        stopKataTimer();
+                        if (isTeamKataSelected()) {
+                            kataState.timerMode = 'team';
+                            kataState.timer = 300000;
+                            kataState.showTimer = true;
+                            runKataTimer();
+                        } else {
+                            kataState.timerMode = null;
+                            kataState.timer = 35000;
+                            kataState.showTimer = false;
+                        }
+                        return;
+                    }
                     stopKataTimer();
                     kataState.timerMode = 'preparation';
                     kataState.timer = 35000;
@@ -2796,8 +3488,10 @@
                 const toggleTeamKataTimer = () => {
                     if (!kataJudgeCount.value) return;
                     if (kataState.timerMode === 'team') {
-                        if (kataState.timerRunning) stopKataTimer();
-                        else if (kataState.timer > 0) runKataTimer();
+                        stopKataTimer();
+                        kataState.showTimer = false;
+                        kataState.timerMode = null;
+                        kataState.timer = 300000;
                         return;
                     }
                     stopKataTimer();
@@ -2952,15 +3646,16 @@
                 return {
                     view, isMobileMenuOpen, currentMode, isPopupMode, isLoading, isSenseiMode,
                     events, sortedEvents, currentEvent, tournamentNameDraft, tournamentNameSaved, saveTournamentName, openEventModal, closeEventModal, getEventDateDisplay, copyPreRegLink,
+                    activeEventId, eventCompetitors, eventCompetitorCount, eventBracketCount, createEvent, selectEvent, exitEvent,
                     municipios, officialKatas, kataCatalog, kataCategoryOptions, timeRules, selectedTimeRule,
                     regForm, calculatedCategory, isValidRegistration, competitors, deleteCompetitor, clearAllData, registerCompetitorLocal,
                     pendingCompetitors, addToPending, confirmBatchRegistrationLocal, removePending, isDojoLocked, showSuccessModal, finishSession, successCount,
                     isEditModalOpen, openEditModal, closeEditModal, saveEdit, editingCompetitor, editField, editValue,
-                    brackets, generateBrackets, selectBracket, selectedBracketName, currentBracketRounds, currentBracketWinner, openMatchOperator, activeMatchId,
+                    brackets, generateBrackets, selectBracket, selectedBracketName, currentBracketRounds, currentBracketWinner, currentBracketPlacements, openMatchOperator, activeMatchId, exportBracketPdf,
                     kumiteState, globalState, kataState,
                     startTimer, stopTimer, pauseCombat, resetTimer, startMedical, endMedical, resetMedical,
-                     resetMatch, addPoints, removePoints, togglePenalty, formatTime, splitKumiteTVTimer, splitKumiteTVName, finishKumiteMatch,
-                    calculateKata, showKataScore, resetKata, toggleKataTimer, toggleTeamKataTimer, nextKataCompetitor, finishKataMatch,
+                     resetMatch, addPoints, removePoints, togglePenalty, formatTime, splitKumiteTVTimer, splitKumiteTVName, finishKumiteMatch, applyKumiteKiken,
+                    calculateKata, showKataScore, resetKata, toggleKataTimer, toggleTeamKataTimer, nextKataCompetitor, finishKataMatch, applyKataKiken,
                     setSenshu, removeSenshu, applyHansoku, isRemoveSenshuEnabled, applyTimeRule, adjustTimer, startColorChange,
                     shikkakuSide, shikkakuSelectedIds, shikkakuRequiredId, shikkakuAthleteName, shikkakuCandidates,
                     openShikkakuModal, cancelShikkaku, confirmShikkaku, undoShikkaku, lastShikkaku, canUndoShikkaku, isDisqualified,
