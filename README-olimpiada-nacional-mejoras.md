@@ -23,7 +23,7 @@ Esta rama reúne mejoras del registro local, las gráficas y los operadores de k
 - `npm test`: **24 pruebas pasaron**, incluidos los 23 cortes en `X.00` y `X.01` y entradas inválidas.
 - Interfaz en Microsoft Edge: en 14–15 femenil, `47.00 kg` muestra `-47kg` y `47.01 kg` cambia a `-54kg`. No se guardó competidor de prueba.
 - `git diff --check` pasó.
-- `npm run make` terminó correctamente con Electron Forge en Windows x64 y generó el instalador `Karate Scoreboard AKT-1.5.0 Setup.exe`, `karate-scoreboard-akt-1.5.0-full.nupkg` y `RELEASES`.
+- `npm run make` terminó correctamente con Electron Forge en Windows x64 y generó localmente `Karate Scoreboard AKT-1.5.0 Setup.exe`, `karate-scoreboard-akt-1.5.0-full.nupkg` y `RELEASES`. GitHub publicó el instalador como `Karate.Scoreboard.AKT-1.5.0.Setup.exe`.
 - Se generó desde el paquete Forge el portable `Karate.Scoreboard.AKT-1.5.0-portable-win32-x64.zip`.
 
 ## Riesgo del merge

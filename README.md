@@ -26,7 +26,7 @@ Aplicación de escritorio para organizar competencias de **kata y kumite** de la
 
 La instalación recomendada para Windows está disponible en la página de [Releases](https://github.com/ingdariovargasjr/karate-scoreboard/releases):
 
-1. Descarga **Karate Scoreboard AKT-1.5.0 Setup.exe**.
+1. Descarga **Karate.Scoreboard.AKT-1.5.0.Setup.exe**.
 2. Ejecútalo y confirma la instalación.
 3. Abre **Karate Scoreboard AKT** desde el menú Inicio o el acceso directo.
 
