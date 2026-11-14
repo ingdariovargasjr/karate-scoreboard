@@ -1,29 +1,36 @@
 # Karate Scoreboard AKT
 
-Aplicación de escritorio para organizar competencias de **kata y kumite** de la Asociación de Karate y Artes Marciales de Tamaulipas. Permite registrar competidores, asignarles categorías, generar gráficas de enfrentamientos y operar el marcador durante los combates. La versión actual del proyecto es **1.4.3**.
+Aplicación de escritorio para organizar competencias de **kata y kumite** de la Asociación de Karate y Artes Marciales de Tamaulipas. Permite registrar competidores, asignarles categorías, generar gráficas de enfrentamientos y operar el marcador durante los combates. La versión actual del proyecto es **1.5.0**.
 
 > **Estado:** la aplicación principal funciona en modo local. Algunas pantallas e integraciones de nube/jueces están presentes, pero no constituyen todavía un flujo inalámbrico completo. Consulta [Limitaciones y problemas conocidos](#limitaciones-y-problemas-conocidos).
 
 ## Funcionalidades
 
-- Registro individual o por equipos, con categorías por edad, género y modalidad. Kumite individual contempla tablas de peso estatal y nacional.
+- Registro individual o por equipos, con categorías por edad, género y modalidad. Kumite individual contempla tablas de peso estatal, nacional y Olimpiada Nacional.
 - Generación de gráficas por categoría, visualización de rondas y operación de encuentros de kata y kumite.
 - Marcador de kumite con reloj, puntuaciones de 1/2/3 puntos, penalizaciones, senshu y decisión por ventaja o al finalizar el tiempo.
 - Evaluación de kata con 5 o 7 jueces, descarte de notas extremas, temporizador y resolución manual de empates.
 - Atención médica independiente de tres minutos y sanción Shikkaku con exclusión de inscripciones vinculadas.
 - Ventana adicional de marcador sincronizada con el operador mediante `BroadcastChannel`; atajos de teclado configurables.
-- Datos locales con exportación e importación de respaldo JSON. La copia automática requiere seleccionar una carpeta compatible con la API `showDirectoryPicker`.
+- Creación y administración de eventos locales, sin iniciar sesión ni usar la nube.
+- Respaldo JSON del evento activo, todos sus datos, competidores, gráficas, resultados y avances de encuentros; se puede importar en otro equipo para continuar allí.
+- Exportación de cada gráfica a PDF horizontal 16:9, renderizado desde HTML; incluye resultados y lugares cuando la final ya terminó.
+- Asignación automática de primer y segundo lugar, y de los dos terceros lugares a partir de los rivales semifinalistas del campeón y subcampeón.
+- En el scoreboard, el reloj desaparece al detenerlo; kata por equipo pasa del aviso de 35 segundos al reloj de 5 minutos. Las puntuaciones de kumite muestran un anuncio de pantalla completa durante 1.5 segundos.
+- Kiken en los operadores de kata y kumite adjudica el encuentro automáticamente al oponente; los anuncios de puntuación usan iconos SVG transparentes con las técnicas de yuko, waza-ari e ippon.
+- Olimpiada Nacional clasifica en 14–15, 16–17 y 18–20 años por rama; los límites `-X kg` incluyen `X.00 kg` y el siguiente centésimo entra a la categoría siguiente o a `+X kg`.
+- La copia automática requiere seleccionar una carpeta compatible con la API `showDirectoryPicker`.
 - Enlaces de pre-registro por evento y códigos QR para las vistas de jueces; esta última integración permanece incompleta.
 
-## Descargar la versión 1.4.3
+## Descargar la versión 1.5.0
 
 La instalación recomendada para Windows está disponible en la página de [Releases](https://github.com/ingdariovargasjr/karate-scoreboard/releases):
 
-1. Descarga **Karate.Scoreboard.AKT-1.4.3.Setup.exe**.
+1. Descarga **Karate.Scoreboard.AKT-1.5.0.Setup.exe**.
 2. Ejecútalo y confirma la instalación.
 3. Abre **Karate Scoreboard AKT** desde el menú Inicio o el acceso directo.
 
-También existe una versión portable en `.zip`. Para conocer el flujo completo del marcador, consulta la [guía rápida de usuario](docs/guia-usuario.md) y las [notas de la versión 1.4.3](docs/releases/v1.4.3.md).
+También existe una versión portable en `.zip`. Para conocer el flujo completo del marcador, consulta la [guía rápida de usuario](docs/guia-usuario.md), las [mejoras de esta rama](README-olimpiada-nacional-mejoras.md) y las [notas de la versión 1.5.0](docs/releases/v1.5.0.md).
 
 > El instalador no está firmado digitalmente. Windows puede mostrar SmartScreen; verifica que el archivo provenga del release oficial antes de ejecutarlo.
 
@@ -65,7 +72,7 @@ La aplicación abierta por Electron es `index.html` desde `main.js`. `login.html
 2. Para kata, elige 5 o 7 jueces antes de generar las gráficas.
 3. Genera las gráficas y abre el encuentro desde el operador correspondiente.
 4. Usa **ABRIR SCOREBOARD TV** para abrir la vista pública sincronizada.
-5. Exporta un respaldo JSON antes de cambiar de computadora o borrar los datos locales.
+5. Exporta un respaldo JSON antes de cambiar de computadora o borrar los datos locales; impórtalo en el otro equipo para trasladar el evento.
 
 La [guía rápida de usuario](docs/guia-usuario.md) explica kumite, kata, atención médica, Shikkaku, desempates, TV y respaldos.
 
@@ -101,26 +108,25 @@ En PowerShell, define las variables solo durante la compilación:
 $env:WINDOWS_CERTIFICATE_FILE = 'C:\ruta-segura\akt-code-signing.pfx'
 $env:WINDOWS_CERTIFICATE_PASSWORD = 'contraseña-del-certificado'
 npm run make
-Get-AuthenticodeSignature '.\out\make\squirrel.windows\x64\Karate.Scoreboard.AKT-1.4.3.Setup.exe'
+Get-AuthenticodeSignature '.\out\make\squirrel.windows\x64\Karate Scoreboard AKT-1.5.0 Setup.exe'
 ```
 
 El resultado debe mostrar `Status : Valid` y el certificado de la organización. La firma ayuda a construir reputación para Microsoft SmartScreen, pero no garantiza que desaparezca inmediatamente el aviso en las primeras descargas; también influyen la reputación del certificado, el archivo y las descargas de los usuarios.
 
 ## Cómo se usan los datos y el marcador
 
-El flujo activo guarda competidores, gráficas y preferencias de teclado en el almacenamiento local del perfil donde se ejecuta; también lee eventos locales, aunque su creación tiene un fallo conocido. La vista principal arranca en registro; desde la navegación se accede a gráficas y a los operadores de kata/kumite. La ventana de TV/marcador usa una URL con `?view=scoreboard` y recibe el estado del operador por `BroadcastChannel('karate_manager_sync')`.
+El flujo activo guarda eventos, competidores, gráficas, resultados y avances de combate en el almacenamiento local del perfil donde se ejecuta. Desde **EVENTOS** puedes crear un evento local, abrirlo y personalizar el nombre que aparece en el operador y la TV. La ventana de TV/marcador usa una URL con `?view=scoreboard` y recibe el estado del operador por `BroadcastChannel('karate_manager_sync')`.
 
-El respaldo JSON manual y la copia automática incluyen **competidores y gráficas, pero no eventos**. Exporta tus datos antes de borrar el almacenamiento local o cambiar de perfil/equipo. La importación restaura competidores y gráficas. El autoguardado, cuando el selector de carpetas está disponible y autorizado, se realiza cada 10 minutos.
+El respaldo JSON manual y la copia automática incluyen eventos, nombres, logo, competidores, gráficas, resultados y el progreso parcial del encuentro abierto. Para mover el evento a otra computadora, exporta el JSON y después impórtalo allí. La importación reemplaza los datos locales de ese perfil; no sincroniza cambios en vivo ni combina ediciones simultáneas. El autoguardado, cuando el selector de carpetas está disponible y autorizado, se realiza cada 10 minutos.
 
 ## Limitaciones y problemas conocidos
 
 | Área | Estado actual / acción sugerida |
 | --- | --- |
 | Jueces inalámbricos | Existen pantalla y QR (`?view=judge&judgeId=...`), pero `initJudgeListener`, `sendJudgeScore` y `setupKataListener` están vacías en `index.html`. No depender de la recepción remota de notas hasta implementar y verificar ese flujo. |
-| Creación de eventos | `createEvent` en `index.html` construye `newEvent`, pero después referencia un `id` no definido y no incorpora el evento a la lista. La gestión de eventos requiere corrección antes de considerarla funcional. |
-| Reloj al abrir kumite desde gráficas | `openMatchOperator` asigna `rule.seconds` al temporizador que el resto del código mide en milisegundos. Verifica y reinicia el reloj desde el operador antes de iniciar un combate; queda pendiente corregir esa conversión. |
-| Respaldos | La exportación no guarda eventos; el autoguardado depende de `window.showDirectoryPicker`, que puede no estar disponible en todos los entornos. Utiliza la exportación manual de competidores/gráficas cuando corresponda. |
-| Pruebas y CI | `npm test` es un placeholder que termina con error. No hay suite de pruebas, lint/typecheck ni workflows de CI configurados; los flujos modificados necesitan comprobación manual. |
+| Trabajo desde varios equipos | Usa exportación e importación JSON para trasladar el estado completo. No existe sincronización de red ni combinación automática de cambios entre equipos. |
+| Respaldos automáticos | Dependen de `window.showDirectoryPicker`, que puede no estar disponible en todos los entornos; el respaldo manual JSON sigue disponible. |
+| Pruebas y CI | `npm test` ejecuta pruebas de límites para las categorías de Olimpiada Nacional. No hay lint/typecheck ni workflows de CI; los demás flujos requieren comprobación manual. |
 
 ### Solución de errores habituales
 

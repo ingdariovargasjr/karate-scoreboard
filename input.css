@@ -1051,6 +1051,26 @@ select.kata-input-box {
 .comp-name { font-size: 0.9rem; font-weight: 500; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
 .comp-score { font-family: 'Roboto', monospace; font-weight: bold; color: #0f172a; }
 .winner-box { background: #fffbeb; border: 2px solid #fbbf24; padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.bracket-canvas { width: max-content; min-width: 100%; }
+.bracket-placements { margin: 0 40px 40px; min-width: 800px; padding: 18px 24px; border: 1px solid #cbd5e1; border-radius: 12px; background: #fff; box-shadow: 0 2px 8px rgba(15,23,42,0.08); }
+.bracket-placement { display: flex; min-width: 0; min-height: 92px; flex-direction: column; justify-content: center; gap: 4px; padding: 12px; border: 1px solid #cbd5e1; border-top: 4px solid #94a3b8; border-radius: 8px; background: #f8fafc; }
+.bracket-placement span { color: #64748b; font-size: 0.68rem; font-weight: 900; line-height: 1.2; text-transform: uppercase; }
+.bracket-placement strong { overflow: hidden; color: #172033; font-size: 1rem; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
+.bracket-placement small { overflow: hidden; color: #64748b; font-size: 0.7rem; text-overflow: ellipsis; white-space: nowrap; }
+.bracket-placement-first { border-top-color: #eab308; background: #fefce8; }
+.bracket-placement-second { border-top-color: #94a3b8; }
+.bracket-placement-third { border-top-color: #c2410c; background: #fff7ed; }
+.kumite-tv-footer-clock-hidden { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+.kumite-tv-footer-clock-hidden .kumite-tv-event-info { grid-column: 1; }
+.kumite-tv-footer-clock-hidden .kumite-tv-match-meta { grid-column: 2; }
+.kumite-score-announcement { position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(0.4rem, 1.5vh, 1.5rem); overflow: hidden; padding: 4vh 5vw; color: #fff; text-align: center; animation: kumite-score-announcement-in 1.5s ease-in-out both; }
+.kumite-score-announcement-aka { background: #dc1727; }
+.kumite-score-announcement-ao { background: #0879ed; }
+.kumite-score-announcement-side { padding: 0.35em 0.9em; border: 2px solid rgba(255,255,255,0.75); border-radius: 999px; font-size: clamp(0.85rem, 2vw, 2rem); font-weight: 900; letter-spacing: 0.14em; }
+.kumite-score-announcement h1 { margin: 0; color: #fff; font-family: 'Oswald', sans-serif; font-size: clamp(4rem, 17vw, 12rem); font-weight: 900; letter-spacing: 0.035em; line-height: 0.92; }
+.kumite-score-announcement p { margin: 0; color: #fff; font-size: clamp(1.4rem, 4vw, 3.5rem); font-weight: 900; letter-spacing: 0.08em; }
+.kumite-score-action { display: block; width: min(48vw, 38rem); height: min(34vh, 17rem); object-fit: contain; overflow: visible; }
+@keyframes kumite-score-announcement-in { 0% { opacity: 0; transform: scale(0.96); } 9%, 83% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.02); } }
 .table-header { @apply px-4 py-2 text-left text-xs font-bold text-gray-500 uppercase tracking-wider; }
 .table-cell { @apply px-4 py-2 whitespace-nowrap text-sm text-gray-900; }
 

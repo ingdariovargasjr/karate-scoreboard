@@ -3,9 +3,9 @@
 ## 1. Primer inicio
 
 1. Abre la aplicación desde el menú Inicio.
-2. En **ADMIN**, escribe y guarda el **Nombre del torneo**; se almacena localmente y aparece en las vistas del operador y TV.
-3. Registra competidores en **ADMIN**.
-4. Revisa modalidad, categoría, municipio y, para kumite individual, peso.
+2. En **EVENTOS**, pulsa **CREAR EVENTO** y captura nombre, fechas y ubicación. El evento queda guardado localmente, sin conexión a la nube.
+3. En **ADMIN**, puedes personalizar y guardar el **Nombre del torneo**; aparece en las vistas del operador y TV.
+4. Registra competidores y revisa modalidad, categoría, municipio y, para kumite individual, peso.
 5. En kata, selecciona **5 o 7 jueces** antes de generar las gráficas.
 6. Pulsa **GENERAR GRÁFICAS**.
 
@@ -27,7 +27,7 @@ Pulsa `S` bajo el atleta sancionado, selecciona manualmente otras inscripciones 
 
 1. Selecciona **KATA OP**.
 2. En una actuación libre, elige 5 o 7 jueces antes de introducir notas.
-3. Usa **INICIAR (35s)** para el inicio o **INICIAR (5:00)** para el reloj de equipo.
+3. Usa **INICIAR (35s)** para el aviso de inicio. En kata por equipo, al volver a pulsar ese botón se oculta 35s y comienza automáticamente **5:00** para la kata y el bunkai. El segundo clic en **DETENER (5:00)** oculta el reloj del scoreboard.
 4. Captura las notas en la fila roja AKA y la azul AO.
 5. En un encuentro de gráfica, captura AKA, pulsa **SIGUIENTE COMPETIDOR** y captura AO.
 6. Si un juez da la misma calificación a AKA y AO, el resultado queda bloqueado: aparecerá un modal con el número del juez y debes corregir una de sus notas.
@@ -40,25 +40,33 @@ Pulsa `S` bajo el atleta sancionado, selecciona manualmente otras inscripciones 
 - En la vista de **Registro/Admin**, usa **CARGAR LOGO** en el bloque **Logo de Kata TV** para elegir el logo del torneo; puedes cambiarlo o quitarlo después.
 - TV kata presenta el tatami, categoría/división, competidor, municipio, kata y logo del torneo en una distribución de alto contraste.
 - TV kumite distingue AKA rojo y AO azul, muestra sus puntos y penalizaciones, e identifica Senshu con un triángulo verde en el marcador correspondiente.
+- Cada puntuación de kumite anuncia YUKO (ONE POINT), WAZA-ARI (TWO POINTS) o IPPON (THREE POINTS) a pantalla completa durante 1.5 segundos. El fondo corresponde a AKA rojo o AO azul e incluye una ilustración de la técnica.
 - Las penalizaciones activas se resaltan en amarillo. El reloj detenido se ve blanco, en marcha amarillo y durante los últimos 15 segundos rojo.
+- Al detener el reloj de kumite, se oculta del scoreboard. Al detener un reloj de kata, también desaparece; en kata por equipo, la secuencia de 35 segundos inicia el reloj de 5 minutos.
 - Las vistas TV se sincronizan con el operador; mantén ambas ventanas abiertas en la aplicación durante el encuentro.
 - TV kata no muestra notas individuales ni votos por juez.
 - TV kata muestra votos totales al finalizar una gráfica o completar una actuación libre.
 - Mientras un reloj de kata está visible, el reloj tiene prioridad sobre los votos.
 
-## 5. Respaldos y cambio de computadora
+## 5. Gráficas y resultados
+
+Cada gráfica muestra automáticamente el primer y segundo lugar al concluir la final. Los dos terceros lugares salen de las semifinales: uno es quien enfrentó al campeón y el otro quien enfrentó al subcampeón. Si todavía no hay una semifinal concluida, su lugar queda pendiente.
+
+Pulsa **EXPORTAR PDF** desde la lista o el detalle de una gráfica. Se genera un PDF horizontal de una página con proporción 16:9, renderizado desde el HTML de la gráfica, con las rondas grandes y los resultados disponibles.
+
+## 6. Respaldos y cambio de computadora
 
 1. En **ADMIN**, pulsa **EXPORTAR RESPALDO (JSON)**.
 2. Guarda el archivo en una ubicación segura.
-3. En la nueva computadora instala la aplicación y usa **IMPORTAR RESPALDO**.
+3. En otra computadora instala la aplicación y usa **IMPORTAR RESPALDO**.
 
-El respaldo incluye competidores y gráficas. No incluye eventos; vuelve a configurarlos si tu flujo los utiliza.
+El archivo incluye eventos, nombre y logo, competidores, gráficas, resultados, notas de kata y el estado parcial de kumite. Importarlo reemplaza los datos locales existentes en esa computadora. Así puedes trasladar el evento y continuar allí; los equipos no sincronizan ni combinan cambios entre sí.
 
-## 6. Datos y privacidad
+## 7. Datos y privacidad
 
 Los datos se guardan localmente en el perfil de la aplicación. El marcador TV se sincroniza con el operador mediante un canal local. Algunas funciones auxiliares cargadas desde CDN requieren conexión a Internet.
 
-## 7. Soporte de instalación
+## 8. Soporte de instalación
 
 - Si Windows muestra SmartScreen, comprueba que el instalador sea el descargado desde el release oficial.
 - Si faltan estilos o recursos al ejecutar desde código fuente, instala dependencias con `npm ci`.

@@ -2,14 +2,14 @@
 
 ## Qué es y para qué sirve
 
-Aplicación de escritorio para gestionar competencias de karate de la Asociación de Karate y Artes Marciales de Tamaulipas: registrar participantes, clasificarlos, generar gráficas de enfrentamientos y operar marcadores de kata y kumite. La interfaz principal funciona localmente; muestra el marcador en otra ventana y permite exportar/importar respaldos JSON. La implementación actual es `karate-scoreboard-electron` 1.3.1.
+Aplicación de escritorio para gestionar competencias de karate de la Asociación de Karate y Artes Marciales de Tamaulipas: crear eventos locales, registrar participantes, clasificarlos, generar gráficas y operar marcadores de kata y kumite. La app persiste los eventos y sus datos localmente, permite transferirlos entre equipos mediante respaldos JSON y exporta cada gráfica como PDF horizontal 16:9. La versión declarada en `package.json` es 1.5.0.
 
 ## Stack y arquitectura real
 
 - **Escritorio:** Electron 41, iniciado en `main.js` mediante `BrowserWindow.loadFile('index.html')`; empaquetado con Electron Forge 7 y configuración de makers en `forge.config.js`.
 - **Interfaz principal:** HTML + JavaScript sin framework de compilación para la aplicación; Vue 3 Composition API (`ref`, `reactive`, `computed`, `watch`, `onMounted`) importado como módulo desde `node_modules` dentro de `index.html`. Plantillas Vue en ese mismo archivo con `v-if`, `v-for` y `v-model`. No hay carpetas `src/` ni separación en componentes Vue.
 - **Estilos:** Tailwind CSS 3; `input.css` contiene directivas y estilos propios; `css/output.css` es el resultado minificado, versionado en Git. `tailwind.config.js` escanea `index.html` y `main.js`. Fontsource (Roboto y Oswald) y Font Awesome se cargan desde `node_modules` en la página principal.
-- **Datos e integraciones:** el flujo principal persiste eventos, competidores, gráficas y atajos en `localStorage`; usa `BroadcastChannel('karate_manager_sync')` para sincronizar operador y marcador en distintas ventanas. EmailJS y QRCodeJS se cargan mediante CDN. `login.html` es una página distinta, con Vue/Tailwind por CDN y Firebase Authentication/Firestore; no es la pantalla de inicio de Electron. Hay dependencias Firebase en `package.json`, pero el flujo activo de `index.html` es local.
+- **Datos e integraciones:** el flujo principal persiste eventos, competidores, gráficas, resultados y avances de encuentro en `localStorage`; usa `BroadcastChannel('karate_manager_sync')` para sincronizar operador y marcador en distintas ventanas. El JSON manual/automático incluye todos los eventos, el nombre y logo, competidores, gráficas y avances. El traslado entre equipos es manual; no hay sincronización de red ni combinación de cambios concurrentes. EmailJS y QRCodeJS se cargan mediante CDN. `login.html` es una página distinta, con Vue/Tailwind por CDN y Firebase Authentication/Firestore; no es la pantalla de inicio de Electron. Hay dependencias Firebase en `package.json`, pero el flujo activo de `index.html` es local.
 - **Hosting:** `.firebaserc` apunta al proyecto `marcador-karate-akt`; `firebase.json` publica la raíz `./` e ignora `firebase.json`, archivos ocultos y `node_modules`. Esto es configuración existente, no prueba de un despliegue automático.
 
 ## Estructura desde la raíz
@@ -18,6 +18,7 @@ Aplicación de escritorio para gestionar competencias de karate de la Asociació
 | --- | --- |
 | `package.json`, `package-lock.json` | Dependencias npm y comandos de desarrollo/empaquetado. |
 | `main.js`, `forge.config.js` | Proceso principal de Electron y makers del paquete. |
+| `preload.js`, `bracket-export.js` | Puente IPC acotado para guardar PDF; cálculo de podio y renderizado HTML independiente para cada gráfica. |
 | `index.html` | Aplicación activa: vistas, datos, reglas de competencia y control del marcador en un único archivo. |
 | `login.html` | Variante separada de acceso/nube con Firebase y CDN. |
 | `input.css`, `tailwind.config.js`, `css/output.css` | Fuente, configuración y salida generada de estilos. |
@@ -29,12 +30,14 @@ Aplicación de escritorio para gestionar competencias de karate de la Asociació
 
 ## Reglas funcionales implementadas
 
-- `RULES` y `computeCategory` en `index.html` clasifican por edad (U12, U14, cadete, junior, U21 y sénior), género, modalidad y tipo; kumite individual añade peso según tablas **ESTATAL** o **NACIONAL**.
+- `RULES` y `computeCategory` en `index.html` clasifican por edad (U12, U14, cadete, junior, U21 y sénior), género, modalidad y tipo; kumite individual añade peso según tablas **ESTATAL**, **NACIONAL** u **OLIMPIADA_NACIONAL**. Olimpiada Nacional distingue femenil/varonil en 14-15 (2013-2012), 16-17 (2011-2010) y 18-20 (2009-2007); los límites `-X` incluyen X.00 kg y `+X` empieza en X.01 kg.
 - `BracketSystem` agrupa por categoría, intercala participantes de distintos municipios, arma rondas con tamaños 4/8/16/32 y propaga ganadores. `generateBrackets` guarda el resultado en `localStorage`.
-- Kumite usa reloj en milisegundos y puntuaciones yuko=1, waza-ari=2, ippon=3. `checkAutoWin` detiene el combate ante diferencia de 8 puntos o decide por puntos/senshu al finalizar el tiempo. `finishKumiteMatch` solicita hantei manual si persiste el empate. Las duraciones configuradas en `timeRules` incluyen 3:00, 2:00 y 1:30 según categoría.
-- Kata calcula el total con 5 o 7 jueces: descarta el valor mayor y el menor (5), o dos de cada extremo (7), y suma tres notas. El flujo de enfrentamiento evalúa a ambos competidores y permite decidir manualmente un empate. Existe temporizador de 35 segundos.
+- Kumite usa reloj en milisegundos y puntuaciones yuko=1, waza-ari=2, ippon=3. `checkAutoWin` detiene el combate ante diferencia de 8 puntos o decide por puntos/senshu al finalizar el tiempo. `finishKumiteMatch` solicita hantei manual si persiste el empate. Los botones KIKEN AKA/AO detienen el reloj y adjudican el encuentro al oponente; en una gráfica se guardan `kikenAuto` y `kikenSide`. Las duraciones configuradas en `timeRules` incluyen 3:00, 2:00 y 1:30 según categoría.
+- Kata calcula el total con 5 o 7 jueces: descarta el valor mayor y el menor (5), o dos de cada extremo (7), y suma tres notas. El flujo de enfrentamiento evalúa a ambos competidores y permite decidir manualmente un empate. En una gráfica, los botones KIKEN muestran el nombre de cada competidor, adjudican el triunfo al oponente y lo muestran en Kata TV. Existe temporizador de 35 segundos.
 - `?view=scoreboard&mode=...`, `?view=judge&judgeId=...` y `?eventId=...` seleccionan vistas por URL. El marcador usa `BroadcastChannel`; el modo juez tiene funciones `initJudgeListener`, `sendJudgeScore` y `setupKataListener` vacías en la página activa: las pantallas/QR no equivalen a una integración inalámbrica terminada.
-- El respaldo JSON manual y el automático (cada 10 minutos, tras elegir carpeta compatible con `showDirectoryPicker`) incluyen competidores y gráficas; **no** incluyen eventos. La importación restaura los mismos datos.
+- Los respaldos JSON incluyen eventos, su nombre/logo/configuración, competidores, gráficas y progreso parcial de kumite/kata. La importación reemplaza el almacenamiento local del perfil destino.
+- `bracket-export.js` calcula podios y genera el HTML independiente de cada gráfica; Electron lo imprime a PDF en una página horizontal 16:9 mediante `main.js` y `preload.js`.
+- Los terceros lugares son los perdedores de la semifinal del campeón y de la semifinal del subcampeón. El operador de kumite persiste el marcador parcial dentro de la gráfica; kata conserva notas parciales en `kataScoring`.
 
 ## Convenciones y patrones existentes
 
@@ -50,7 +53,7 @@ Aplicación de escritorio para gestionar competencias de karate de la Asociació
 3. Verificación enfocada disponible: `npm run build:css` y revisión manual del flujo afectado (registro, gráficas, operador, marcador y persistencia/respaldos según corresponda). `npm run package` también compila CSS y crea el paquete mediante Forge.
 4. En el `package.json` versionado en `main`, `npm run make` compila CSS y ejecuta Electron Forge. Si una copia local presenta el error tipográfico `b|ild:css`, ese script falla; verifica el manifiesto antes de empaquetar. `npm run dist` llama a `electron-builder`, que no figura entre las dependencias.
 
-`npm test` es un placeholder que termina con error. No se encontraron suites de pruebas, configuración de lint/typecheck, workflows de CI ni plantillas de PR en este repositorio. Por tanto, no hay pipeline ni orden de checks exigido por configuración.
+`npm test` ejecuta casos Node.js para comprobar los 23 límites de peso de Olimpiada Nacional en ambas ramas y tres grupos de edad, incluidos los cambios de `X.00` a `X.01`. No se encontraron configuración de lint/typecheck, workflows de CI ni plantillas de PR en este repositorio. Por tanto, no hay pipeline ni orden de checks exigido por configuración.
 
 ## Estilo de commits y PR: referencia Invita Fácil
 
