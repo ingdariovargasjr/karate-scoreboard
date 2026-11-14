@@ -18,10 +18,16 @@ Esta rama reúne mejoras del registro local, las gráficas y los operadores de k
 | 16–17 (2011–2010) | -48, -53, -59, -66, +66 kg | -55, -61, -68, -76, +76 kg |
 | 18–20 (2009–2007) | -50, -55, -61, -68, +68 kg | -60, -67, -75, -84, +84 kg |
 
-## Validación
+## Evidencia
 
 - `npm test`: **24 pruebas pasaron**, incluidos los 23 cortes en `X.00` y `X.01` y entradas inválidas.
 - Interfaz en Microsoft Edge: en 14–15 femenil, `47.00 kg` muestra `-47kg` y `47.01 kg` cambia a `-54kg`. No se guardó competidor de prueba.
 - `git diff --check` pasó.
 - `npm run make` terminó correctamente con Electron Forge en Windows x64 y generó el instalador `Karate Scoreboard AKT-1.5.0 Setup.exe`, `karate-scoreboard-akt-1.5.0-full.nupkg` y `RELEASES`.
 - Se generó desde el paquete Forge el portable `Karate.Scoreboard.AKT-1.5.0-portable-win32-x64.zip`.
+
+## Riesgo del merge
+
+**Puerta:** reversible.
+
+**Alcance:** operaciones de torneo, registro local, resultados, exportación de gráficas y presentación del scoreboard.
